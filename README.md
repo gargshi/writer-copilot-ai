@@ -1,6 +1,6 @@
 # Writer Copilot (Offline AI Writing Assistant)
 
-An offline-first AI-powered writing assistant designed to help you **generate, continue, and refine stories** — all running locally with your own LLM.
+An offline-first AI-powered writing assistant designed to help you **generate, continue, and refine stories**, all while running locally with your own LLM.
 
 ---
 
@@ -72,7 +72,7 @@ project/
 ├── templates/
 │   └── index.html
 │
-├── drafts/              # Stored stories
+├── drafts/              # Stored stories (created when saving a story)
 ├── app.py               # Main Flask app
 ├── .env                 # Environment variables
 ├── .gitignore
@@ -172,7 +172,7 @@ http://127.0.0.1:5000
 
 ## Vision
 
-This project is not just about generating text —
+This project is not just about generating text;
 it aims to become a **true writing companion** that helps users improve their storytelling skills over time.
 
 ---
