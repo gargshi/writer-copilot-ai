@@ -9,6 +9,8 @@ import time
 
 import os
 
+from werkzeug.utils import secure_filename
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -36,11 +38,21 @@ def save_story():
     directory = os.getenv("DRAFT_FOLDER_NAME")
     timestamp = str(int(round(time.time() * 1000)))
     create_draft_directory(directory)
-    with open(f'{directory}/story_{timestamp}.txt', 'w') as f:
+    filename = f"story_{timestamp}.txt"
+    filepath = os.path.join(directory, filename)
+
+    with open(filepath, 'w') as f:
         f.write(data['story'])
     if not os.path.exists(f'{directory}/story_{timestamp}.txt'):
         return jsonify({"status": "error", "message": "Failed to save story"})
     return jsonify({"status": "success"})
+
+
+def get_first_line(directory, file):
+    filepath = os.path.join(directory, file)
+    with open(filepath) as f:
+        first_line = f.readline()
+    return first_line
 
 
 @app.route('/get_drafts', methods=['GET'])
@@ -51,7 +63,7 @@ def get_drafts():
         if file.endswith(".txt"):
             drafts.append({
                 "name": file,
-                "content-short": open(f'{directory}/{file}').readline(),
+                "content-short": get_first_line(directory, file),
                 "modified-at": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(f'{directory}/{file}'))),
                 "m-timestamp": os.path.getmtime(f'{directory}/{file}')
             })
@@ -63,9 +75,14 @@ def get_drafts():
 @app.route('/get_story', methods=['POST'])
 def get_story():
     data = request.get_json()
-    story_name = data['story_name']
+    # story_name = data['story_name']
+    # directory = os.getenv("DRAFT_FOLDER_NAME")
+    # story = open(f'{directory}/{story_name}').read()
+    story_name = secure_filename(data['story_name'])
     directory = os.getenv("DRAFT_FOLDER_NAME")
-    story = open(f'{directory}/{story_name}').read()
+    filepath = os.path.join(directory, story_name)
+    with open(filepath) as f:
+        story = f.read()
     return jsonify({"status": "success", "story": story})
 
 
@@ -73,7 +90,10 @@ def get_story():
 def delete_draft(draft_name):
     directory = os.getenv("DRAFT_FOLDER_NAME")
     try:
-        os.remove(f'{directory}/{draft_name}')
+        # os.remove(f'{directory}/{draft_name}')
+        safe_name = secure_filename(draft_name)
+        filepath = os.path.join(directory, safe_name)
+        os.remove(filepath)
         return jsonify({"status": "success"})
     except OSError as e:
         return jsonify({"status": "error", "message": str(e)})
@@ -126,7 +146,6 @@ def continue_with_ai():
 
 
 def llm_prompt(prompt, show_think=False):
-
     """
     This function is designed to set the LLM to show the thinking if available using the show_think variable. based on the condition,
     the LLM will show the thinking/reasoning or not.
@@ -145,7 +164,7 @@ def llm_prompt(prompt, show_think=False):
 
         try:
             if show_think:
-                
+
                 for chunk in stream:
 
                     # 🔥 STOP CHECK
