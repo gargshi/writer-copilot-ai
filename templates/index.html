@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Writer Copilot</title>
+
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+
+	<div class="buttons">
+		<div class="header">
+			🖊 Writer Copilot			
+		</div>
+		<button onclick="openModal()" class="btn btn-success" id="startBtn">Write from Scratch</button>
+		<button onclick="checkGrammar()" class="btn btn-gray">Check Grammar/Proofread</button>
+		<button onclick="saveStory()" class="btn btn-primary">Save</button>
+		<button onclick="continueWithAI()" class="btn btn-success" id="continueBtn">Continue With AI</button>
+		<button onclick="stopGeneration()" class="btn btn-danger" id="stopBtn">Stop Generation</button>
+
+		<div class="stats msg">
+			READY
+		</div>
+		<div class="stats">
+			Total words: <span id="totalWords">0</span>
+		</div>
+	</div>
+
+	<!-- modal to get idea and opening statement from the user -->
+
+	<div class="modal" id="ideaModal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2>Story Setup</h2>
+				<span class="close" onclick="closeModal()">&times;</span>		
+			</div>
+			<div class="modal-body">
+				<p>Main conflict</p>
+				<textarea placeholder="What is the central conflict?" id="mainConflict"></textarea>
+	
+				<p>Protagonist</p>
+				<textarea placeholder="Who is the main character?" id="protagonist"></textarea>
+
+				<p>Person</p>
+				<select title="Person" name="storyPerson" id="storyPerson">
+					<option value="First Person">First Person</option>
+					<option value="Third Person" default>Third Person</option>				
+				</select>
+	
+				<p>Opening scene</p>
+				<textarea placeholder="What happens in the first scene?" id="openingScene"></textarea>
+	
+				<p>Story Type</p>
+				<select title="Story Type" name="storyType" id="storyType">
+					<option value="Novella">Novella</option>
+					<option value="Short Story" default>Short Story</option>
+					<option value="Long Story">Long Story</option>
+					<option value="Novel">Novel</option>
+				</select>
+	
+				<p>Words to Generate</p>
+				<input type="number" placeholder="Number of words to generate" id="wordsToGenerate" value="300" />
+	
+				<button onclick="sendDataToLLM()">Generate Story</button>
+			</div>
+
+		</div>
+	</div>
+
+
+	<div class="container">
+
+		<div class="side-panel">
+			<div class="accordion">
+				<!-- Story Parameters -->
+				<button class="accordion-btn">Story Parameters</button>
+				<div class="accordion-content">
+
+					<h5>Main Conflict</h5>
+					<p id="mainConflictVal"></p>
+
+					<h5>Protagonist</h5>
+					<p id="protagonistVal"></p>
+
+					<h5>Person</h5>
+					<p id="storyPersonVal"></p>
+
+					<h5>Opening Scene</h5>
+					<p id="openingSceneVal"></p>
+
+					<h5>Words to Generate</h5>
+					<p id="wordsToGenerateVal"></p>
+
+					<h5>Story Type</h5>
+					<p id="storyTypeVal"></p>
+
+				</div>
+
+
+				<!-- Drafts -->
+				<button class="accordion-btn">Drafts</button>
+				<div class="accordion-content block">
+					<div id="draftList">
+
+					</div>
+				</div>
+
+
+				<!-- AI Suggestions -->
+				<button class="accordion-btn">AI Suggestions</button>
+				<div class="accordion-content">
+					<div id="aiSuggestions">
+						<p>No suggestions yet.</p>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+
+		<div class="editor">
+			<textarea placeholder="Start writing your story here..."></textarea>
+		</div>
+
+
+	</div>
+	<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+
+</html>
