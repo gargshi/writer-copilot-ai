@@ -1,24 +1,22 @@
-# ✍️ Writer Copilot (Offline AI Writing Assistant)
+# Writer Copilot (Offline AI Writing Assistant)
 
 An offline-first AI-powered writing assistant designed to help you **generate, continue, and refine stories** — all running locally with your own LLM.
 
 ---
 
-## 🚀 Overview
+## Overview
 
 Writer Copilot is a lightweight web application that integrates with a **locally hosted LLM (via LM Studio)** to assist writers in crafting compelling stories.
 
 Unlike cloud-based tools, this project focuses on:
 
-* 🔒 Privacy (no external API calls required)
-* ⚡ Speed (local inference)
-* 💡 Creativity support (not just generation)
-
+* Privacy (no external API calls required)
+* Speed (local inference)
+* Creativity support (not just generation)
 ---
+## Features
 
-## ✨ Features
-
-### 🧠 AI Story Generation
+### AI Story Generation
 
 * Generate story openings based on:
 
@@ -28,32 +26,31 @@ Unlike cloud-based tools, this project focuses on:
   * Story type
   * Narrative perspective
 
-### 🔄 Continue Writing with AI
+### Continue Writing with AI
 
 * Extend your story seamlessly
 * Maintains tone and narrative flow
 * Controlled generation (~300 words for continuation)
 
-### 💾 Draft Management
+### Draft Management
 
 * Save stories locally as drafts
 * View all saved drafts
 * Load and continue editing
 * Delete drafts when needed
 
-### ⚡ Streaming Responses
+### Streaming Responses
 
 * Real-time text generation from the LLM
 * Optional handling of model "thinking" blocks (`[THINK]`)
 
-### 🛑 Stop Generation
+### Stop Generation
 
 * Interrupt AI generation mid-way
 * Useful for controlling output length
-
 ---
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 * **Backend:** Flask (Python)
 * **LLM Integration:** Local model via LM Studio (OpenAI-compatible API)
@@ -63,7 +60,7 @@ Unlike cloud-based tools, this project focuses on:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 project/
@@ -84,7 +81,7 @@ project/
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup Instructions
 
 ### 1. Clone the repository
 
@@ -120,7 +117,7 @@ DRAFT_FOLDER_NAME=drafts
 
 ---
 
-## 🧪 Running the App
+## Running the App
 
 ```bash
 python app.py
@@ -134,7 +131,7 @@ http://127.0.0.1:5000
 
 ---
 
-## 🧠 How It Works
+## How It Works
 
 1. User provides story parameters
 2. Flask backend builds a structured prompt
@@ -144,7 +141,7 @@ http://127.0.0.1:5000
 
 ---
 
-## 🔐 Privacy & Offline Design
+## Privacy & Offline Design
 
 * No external API calls required
 * All data stays on your machine
@@ -153,7 +150,7 @@ http://127.0.0.1:5000
 
 ---
 
-## ⚠️ Current Limitations
+## Current Limitations
 
 * No authentication (single-user, offline design)
 * File-based storage (no database yet)
@@ -162,37 +159,31 @@ http://127.0.0.1:5000
 
 ---
 
-## 🛣️ Future Improvements
+## Future Improvements
 
-* 📊 Story structuring assistance (plot, arcs, pacing)
-* 🧠 Writing feedback & suggestions (not just generation)
-* 🗂️ Draft tagging & organization
-* 🧾 Version history
-* 🧩 Plugin-style writing tools (dialogue enhancer, tone shifter)
-* 🌐 Optional cloud sync
+* Story structuring assistance (plot, arcs, pacing)
+* Writing feedback & suggestions (not just generation)
+* Draft tagging & organization
+* Version history
+* Plugin-style writing tools (dialogue enhancer, tone shifter)
+* Optional cloud sync
 
 ---
 
-## 💡 Vision
+## Vision
 
 This project is not just about generating text —
 it aims to become a **true writing companion** that helps users improve their storytelling skills over time.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to fork and experiment. Suggestions and improvements are welcome!
 
 ---
 
-## 📜 License
-
-MIT License (or choose your preferred license)
-
----
-
-## 👨‍💻 Author
+## Author
 
 Built as part of an exploration into:
 
@@ -202,4 +193,5 @@ Built as part of an exploration into:
 
 ---
 
-✨ *Write better. Think deeper. Stay in control.*
+*Write better. Think deeper. Stay in control.*
+
