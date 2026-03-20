@@ -36,7 +36,7 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h2>Story Setup</h2>
-				<span class="close" onclick="closeModal()">&times;</span>		
+				<span class="close" onclick="closeModal(this)">&times;</span>		
 			</div>
 			<div class="modal-body">
 				<p>Main conflict</p>
@@ -63,11 +63,25 @@
 				</select>
 	
 				<p>Words to Generate</p>
-				<input type="number" placeholder="Number of words to generate" id="wordsToGenerate" value="300" />
+				<input type="number" placeholder="Number of words to generate" id="wordsToGenerate" value="300" />			
 	
-				<button onclick="sendDataToLLM()">Generate Story</button>
+				<button onclick="sendDataToLLM(generatePlots=true,el=this)">Generate Plots</button>
 			</div>
 
+		</div>
+	</div>
+
+	<!-- modal to display plot information -->
+
+	<div class="modal" id="plotModal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2>Plot</h2>
+				<span class="close" onclick="closeModal(this)">&times;</span>		
+			</div>
+			<div class="modal-body">
+				
+			</div>
 		</div>
 	</div>
 
@@ -106,6 +120,14 @@
 				<div class="accordion-content block">
 					<div id="draftList">
 
+					</div>
+				</div>
+
+				<!-- Plots -->
+				<button class="accordion-btn">Plots</button>
+				<div class="accordion-content block">
+					<div id="plotSuggestions">
+						
 					</div>
 				</div>
 

@@ -6,22 +6,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	const editor = document.querySelector(".editor textarea");
 	const status = document.querySelector(".stats.msg");
-const continueButton = document.querySelector("#continueBtn");
-		const stopButton = document.querySelector("#stopBtn");
-		const startButton = document.querySelector("#startBtn");
-		continueButton.style.display = "inline-block";
-		stopButton.style.display = "none";
-		startButton.style.display = "inline-block";
+	const continueButton = document.querySelector("#continueBtn");
+	const stopButton = document.querySelector("#stopBtn");
+	const startButton = document.querySelector("#startBtn");
+	const plotModal = document.querySelector("#plotModal");
+	let plotsTextfromAI = "";
+	let plots = [];
+	let useCachedPlots = !true;
+	continueButton.style.display = "inline-block";
+	stopButton.style.display = "none";
+	startButton.style.display = "inline-block";
 
-		function isEditorEmpty() {
-			return !editor.value.trim();
-		}
+	function isEditorEmpty() {
+		return !editor.value.trim();
+	}
 
-		// Initially disable continue button if editor empty
-		if (isEditorEmpty()) {
-			continueButton.disabled = true;
-			continueButton.style.display = "none";
-		}
+	// Initially disable continue button if editor empty
+	if (isEditorEmpty()) {
+		continueButton.disabled = true;
+		continueButton.style.display = "none";
+	}
 
 	let controller = null;
 	let currentRequestId = null;
@@ -50,11 +54,11 @@ const continueButton = document.querySelector("#continueBtn");
 	--------------------------- */
 
 	editor.addEventListener("input", () => {
-			updateWordCount(editor.value);
-			// Disable continue button if editor empty
-			continueButton.disabled = isEditorEmpty();
-			continueButton.style.display = isEditorEmpty() ? "none" : "inline-block";
-		});
+		updateWordCount(editor.value);
+		// Disable continue button if editor empty
+		continueButton.disabled = isEditorEmpty();
+		continueButton.style.display = isEditorEmpty() ? "none" : "inline-block";
+	});
 
 	function updateWordCount(text) {
 		if (!text) {
@@ -82,14 +86,26 @@ const continueButton = document.querySelector("#continueBtn");
 		document.getElementById("ideaModal").style.display = "block";
 	}
 
-	window.closeModal = function () {
+	window.closeModal = function (el) {
 		document.body.style.overflow = "auto";
-		document.getElementById("ideaModal").style.display = "none";
+
+		const modal = el.closest(".modal");
+		if (modal) {
+			modal.style.display = "none";
+		}
 	}
 
+	// window.onclick = function (event) {
+	// 	const modal = document.getElementById("ideaModal");
+	// 	if (event.target === modal) closeModal();
+	// };
 	window.onclick = function (event) {
-		const modal = document.getElementById("ideaModal");
-		if (event.target === modal) closeModal();
+		if (event.target.classList.contains("modal")) {
+			document.body.style.overflow = "auto";
+			event.target.style.display = "none";
+
+			console.log("Closed modal:", event.target.id);
+		}
 	};
 
 
@@ -189,7 +205,7 @@ const continueButton = document.querySelector("#continueBtn");
 	   GENERATE STORY (LLM)
 	--------------------------- */
 
-	window.sendDataToLLM = async function () {
+	window.sendDataToLLM = async function (generatePlots = false, el = null) {
 
 		const mainConflict = document.getElementById("mainConflict").value || test_data.mainConflict;
 		const protagonist = document.getElementById("protagonist").value || test_data.protagonist;
@@ -209,7 +225,7 @@ const continueButton = document.querySelector("#continueBtn");
 
 		controller = new AbortController();
 
-		closeModal();
+		closeModal(el);
 
 		try {
 			// continueButton.disabled = true;
@@ -218,6 +234,12 @@ const continueButton = document.querySelector("#continueBtn");
 			continueButton.style.display = "none";
 			stopButton.style.display = "inline-block";
 			startButton.style.display = "none";
+
+			if (useCachedPlots) {
+				await populatePlots();
+				return;
+			}
+
 
 			const response = await fetch('/send_data_to_llm', {
 				method: 'POST',
@@ -245,7 +267,7 @@ const continueButton = document.querySelector("#continueBtn");
 
 			editor.value = "";
 
-			status.innerText = "Generating story...";
+			status.innerText = (!generatePlots) ? "Generating Story..." : "Generating Plots... Please wait...";
 
 
 			while (true) {
@@ -256,15 +278,22 @@ const continueButton = document.querySelector("#continueBtn");
 
 				const chunk = decoder.decode(value, { stream: true });
 
-				editor.value += chunk;
-				editor.scrollTop = editor.scrollHeight;
-				updateWordCount(editor.value);
+				if (!generatePlots) {
+					editor.value += chunk;
+					editor.scrollTop = editor.scrollHeight;
+					updateWordCount(editor.value);
+				}
 
+				plotsTextfromAI += chunk;
+				// plots = plotsTextfromAI.split("\n\n");
 			}
-			await saveStory();
+			if (!generatePlots) {
+				await saveStory();
+				return;
+			}
+			await populatePlots();
 
 		} catch (error) {
-
 			if (error.name === "AbortError") {
 				console.log("⛔ Generation stopped");
 				status.innerText = "Stopped";
@@ -275,6 +304,79 @@ const continueButton = document.querySelector("#continueBtn");
 			}
 		}
 	};
+
+	window.populatePlots = async function () {
+		const plotsDiv = document.getElementById("plotSuggestions");
+		plotsDiv.innerHTML = "";
+		plots = plotsTextfromAI.trim();
+		// console.log(plots);
+		plots = useCachedPlots ? JSON.parse(localStorage.getItem("plots")) : plots;
+		if (!useCachedPlots) {
+			localStorage.setItem("plots", JSON.stringify(plots));
+		}
+
+		plots = plots
+			.match(/{[\s\S]*?}/g)
+			.map(obj => {
+				let fixed = obj
+					.replace(/\\n/g, "")
+					.replace(/:\s*([^",\{\}\[\]]+)(?=,|\})/g, (match, p1) => {
+						return ': "' + p1.trim() + '"';
+					});
+				console.log(fixed);
+
+				return JSON.parse(fixed);
+			});
+
+		// console.log(plots);
+
+		for (let i = 0; i < plots.length; i++) {
+			const plot = plots[i];
+			const plotDiv = document.createElement("div");
+			plotDiv.classList.add("plot");
+			plotDiv.innerHTML = `
+				<h3>${plot.title}</h3>
+				<h4>Core Idea</h4>
+				<p>${plot.core_idea}</p>
+				<h4>Protagonist</h4>
+				<p>${plot.protagonist}</p>
+				<h4>Conflict</h4>
+				<p>${plot.conflict}</p>
+				<h4>Stakes</h4>
+				<p>${plot.stakes}</p>
+				<h4>Direction</h4>
+				<p>${plot.direction}</p>
+			`;
+			plotDiv.addEventListener("click", function () {
+				plotModal.style.display = "block";
+				plotModal.querySelector(".modal-content .modal-body").innerHTML = `
+					<h3>${plot.title}</h3>
+					<h4>Core Idea</h4>
+					<p>${plot.core_idea}</p>
+					<h4>Protagonist</h4>
+					<p>${plot.protagonist}</p>
+					<h4>Conflict</h4>
+					<p>${plot.conflict}</p>
+					<h4>Stakes</h4>
+					<p>${plot.stakes}</p>
+					<h4>Direction</h4>
+					<p>${plot.direction}</p>
+				`;
+			})
+			plotsDiv.appendChild(plotDiv);
+		}
+
+		// Everything below runs AFTER loop finishes
+		// await new Promise(resolve => setTimeout(resolve, 6000));
+
+		status.innerText = "READY";
+
+		getDrafts();
+
+		stopButton.style.display = "none";
+		startButton.style.display = "inline-block";
+	};
+
 
 	window.continueWithAI = async function () {
 
@@ -328,8 +430,7 @@ const continueButton = document.querySelector("#continueBtn");
 				updateWordCount(editor.value);
 
 			}
-			if (configVars["SaveAfterEveryGeneration"])
-			{
+			if (configVars["SaveAfterEveryGeneration"]) {
 				await saveStory();
 			}
 

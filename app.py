@@ -110,24 +110,87 @@ def create_draft_directory(dir):
 @app.route('/send_data_to_llm', methods=['POST'])
 def give_data_to_llm():
     data = request.get_json()
+    # prompt = f"""
+    # You are a renowned novelist.
+    # Generate atmost 5 plotlines of a story in {data["storyPerson"]}, given the below parameters.
+
+    # Main conflict: {data["mainConflict"]}
+    # Protagonist: {data["protagonist"]}
+    # Opening scene: {data["openingScene"]}
+    # Word Limit: {data["wordsToGenerate"]}
+    # Story Type: {data["storyType"]}
+    # Story Person: {data["storyPerson"]}
+
+    # Incase, any of the details are missing, fill them in as best you can.
+
+    # Write a compelling opening scene and stay within the scope as defined in the parameters above.
+    # KEEP NOTE OF THE FOLLOWING:-
+    # 1. NO ABUSIVE LANGUAGE.
+    # 2. Do NOT provide the title.
+    # """
     prompt = f"""
-    You are a renowned novelist.
-    Write the opening of a story in {data["storyPerson"]}, given the below parameters.
+        You are a renowned novelist and story architect.
 
-    Main conflict: {data["mainConflict"]}
-    Protagonist: {data["protagonist"]}
-    Opening scene: {data["openingScene"]}
-    Word Limit: {data["wordsToGenerate"]}
-    Story Type: {data["storyType"]}
-    Story Person: {data["storyPerson"]}
+        Your task is to generate up to 5 distinct and compelling plotlines based on the given inputs.
 
-    Incase, any of the details are missing, fill them in as best you can.
+        Each plotline should:
+        - Be 3–5 sentences long
+        - Clearly describe the core idea, conflict, and direction of the story
+        - Be unique from the others (no repetition or minor variations)
+        - Be engaging and imaginative
 
-    Write a compelling opening scene and stay within the scope as defined in the parameters above.
-    KEEP NOTE OF THE FOLLOWING:-
-    1. NO ABUSIVE LANGUAGE.
-    2. Do NOT provide the title.
-    """
+        Inputs:
+        Main conflict: {data["mainConflict"]}
+        Protagonist: {data["protagonist"]}
+        Opening scene: {data["openingScene"]}
+        Story Type: {data["storyType"]}
+        Narration Style (Person): {data["storyPerson"]}
+
+        Instructions:
+        - If any detail is missing, creatively fill in the gaps
+        - Do NOT write full scenes or dialogues
+        - Do NOT include a title
+        - Do NOT use abusive or inappropriate language
+        - Focus only on high-level story ideas (plotlines)
+
+        Return in STRICTLY valid  JSON Format as below:
+        [
+            {{
+                "title": "Plotline 1",
+                "core_idea": "...",
+                "protagonist": "...",
+                "conflict": "...",
+                "stakes": "...",
+                "direction": "..."
+            }},
+            {{
+                "title": "Plotline 2",
+                "core_idea": "...",
+                "protagonist": "...",
+                "conflict": "...",
+                "stakes": "...",
+                "direction": "..."
+            }},
+            {{
+                "title": "Plotline 3",
+                "core_idea": "...",
+                "protagonist": "...",
+                "conflict": "...",
+                "stakes": "...",
+                "direction": "..."
+            }},
+            ...
+        ]
+
+        Rules:
+        - Do NOT include markdown (** or -)
+        - Do NOT include explanations
+        - Do NOT include text outside JSON
+        - Ensure valid JSON syntax
+        ...
+
+        Keep the response concise and structured.
+        """
     return llm_prompt(prompt, show_think=True)
 
 
