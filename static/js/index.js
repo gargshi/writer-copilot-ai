@@ -6,12 +6,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	const editor = document.querySelector(".editor textarea");
 	const status = document.querySelector(".stats.msg");
-	const continueButton = document.querySelector("#continueBtn");
-	const stopButton = document.querySelector("#stopBtn");
-	const startButton = document.querySelector("#startBtn");
-	continueButton.style.display = "inline-block";
-	stopButton.style.display = "none";
-	startButton.style.display = "inline-block";
+const continueButton = document.querySelector("#continueBtn");
+		const stopButton = document.querySelector("#stopBtn");
+		const startButton = document.querySelector("#startBtn");
+		continueButton.style.display = "inline-block";
+		stopButton.style.display = "none";
+		startButton.style.display = "inline-block";
+
+		function isEditorEmpty() {
+			return !editor.value.trim();
+		}
+
+		// Initially disable continue button if editor empty
+		if (isEditorEmpty()) {
+			continueButton.disabled = true;
+			continueButton.style.display = "none";
+		}
 
 	let controller = null;
 	let currentRequestId = null;
@@ -39,7 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
 	   WORD COUNT
 	--------------------------- */
 
-	editor.addEventListener("input", () => updateWordCount(editor.value));
+	editor.addEventListener("input", () => {
+			updateWordCount(editor.value);
+			// Disable continue button if editor empty
+			continueButton.disabled = isEditorEmpty();
+			continueButton.style.display = isEditorEmpty() ? "none" : "inline-block";
+		});
 
 	function updateWordCount(text) {
 		if (!text) {
@@ -53,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	// UPDATE BUTTON VISIBILITY
 	function updateButtonVisibility(isGenerating) {
-		continueButton.disabled = isGenerating;
+		continueButton.disabled = isGenerating || isEditorEmpty();
 		stopButton.disabled = !isGenerating;
 		startButton.disabled = isGenerating;
 	}

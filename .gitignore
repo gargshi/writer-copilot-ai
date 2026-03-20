@@ -45,3 +45,22 @@ static/js/*
 drafts/
 app-orig.py
 git-commands.bat
+
+# Blackbox AI
+TODO*.md
+.blackbox/
+blackbox/
+.blackboxai/
+blackboxai/
+
+# Logs & temp
+blackbox.log
+*.blackbox.log
+
+# Cache / model artifacts (if any)
+blackbox_cache/
+.bb_cache/
+
+# Env / secrets (VERY important)
+.blackbox.env
+blackbox.env
