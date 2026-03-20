@@ -59,6 +59,8 @@ def get_first_line(directory, file):
 def get_drafts():
     directory = os.getenv("DRAFT_FOLDER_NAME")
     drafts = []
+    if not os.path.exists(directory):
+        return jsonify({"status": "error", "message": "No drafts found"})
     for file in os.listdir(directory):
         if file.endswith(".txt"):
             drafts.append({
