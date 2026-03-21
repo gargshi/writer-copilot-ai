@@ -315,6 +315,8 @@ document.addEventListener("DOMContentLoaded", function () {
 			localStorage.setItem("plots", JSON.stringify(plots));
 		}
 
+		console.log(plots.match(/{[\s\S]*?}/g));
+
 		plots = plots
 			.match(/{[\s\S]*?}/g)
 			.map(obj => {
