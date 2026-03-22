@@ -1,13 +1,14 @@
 import uuid
 from openai import OpenAI
 from flask import Flask, render_template
-from flask import request
+from flask import request, redirect, url_for,flash
 from flask import jsonify
 
 from flask import Response
 import time
 
 import os
+import json
 
 from werkzeug.utils import secure_filename
 
@@ -26,10 +27,92 @@ client = OpenAI(
 app = Flask(__name__)
 active_generations = {}
 
+app.secret_key = os.getenv("APP_SECRET_KEY")
+
 
 @app.route('/')
-def hello_world():
+def sessions():
+    return render_template('sessions.html')
+
+
+@app.route('/story')
+def story():
     return render_template('index.html')
+
+
+def create_session_directory():
+    sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+    if not os.path.exists(sess_dir):
+        os.makedirs(sess_dir)
+
+
+@app.route('/update_session', methods=['POST'])
+def update_session():
+    try:
+        data = request.form
+        print(data)
+        timestamp = data['timestamp']
+        sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+        session_dict = {}
+        with open(f'{sess_dir}/session_{timestamp}.json', 'r') as f:
+            session_dict = json.load(f)
+        session_dict['session_name'] = data['name']
+        session_dict['session_description'] = data['description']
+        with open(f'{sess_dir}/session_{timestamp}.json', 'w') as f:
+            # convert session_dict to json
+            json.dump(session_dict, f)
+            flash("Session updated successfully!", "success")
+    except Exception as e:
+        print(e)
+        flash("Error creating session", "error")
+    
+    return redirect(url_for('sessions'))
+
+
+@app.route('/create_session', methods=['POST'])
+def create_session():
+    data = request.form
+    print(data)
+    timestamp = str(int(round(time.time() * 1000)))
+    session_dict = {
+        "session_id": str(uuid.uuid4()),
+        "timestamp": timestamp,
+        "session_name": data['session_name'],
+        "session_description": data['session_description']
+    }
+    create_session_directory()
+    sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+    with open(f'{sess_dir}/session_{timestamp}.json', 'w') as f:
+        # convert session_dict to json
+        json.dump(session_dict, f)
+    flash("Session created successfully!", "success")
+    return redirect(url_for('sessions'))
+
+
+@app.route('/get_sessions', methods=['GET'])
+def get_sessions():
+    sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+    sessions = []
+    for file in os.listdir(sess_dir):
+        if file.endswith(".json"):
+            with open(f'{sess_dir}/{file}', 'r') as f:
+                sessions.append(json.load(f))
+    return jsonify({"status": "success", "sessions": sessions})
+
+@app.route('/delete_session', methods=['POST'])
+def delete_session():
+    try:
+        data = request.get_json()
+        print(data)
+        sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+        os.remove(f'{sess_dir}/session_{data["timestamp"]}.json')        
+    except Exception as e:
+        print(e)
+        return jsonify({"status": "error", "message": str(e)})
+    return jsonify({"status": "success"})
+
+
+
 
 
 @app.route('/save_story', methods=['POST'])

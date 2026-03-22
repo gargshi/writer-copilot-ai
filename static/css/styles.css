@@ -412,3 +412,9 @@ textarea:focus {
 		.navbar-buttons .btn { width: 100%; justify-content: center; }
 		.navbar-stats { flex-direction: column; gap: 0.5rem; text-align: center; }
 	}
+
+.two-column {
+	display: flex;
+	column-count: 2;
+	column-gap: 20px;
+}
