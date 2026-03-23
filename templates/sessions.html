@@ -4,152 +4,17 @@
 {% block title %}Sessions - Writer Copilot AI{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
 <style>
-  
-
-  /* =========================
-   BUTTONS (match your system)
-========================= */
-  .btn {
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
+  body {
+    background-color: #f2f2f7;
+    /* iOS system background */
+    font-family:'Arial', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1d1d1f;
+    /* Apple's primary text color */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-
-  .btn-outline-primary {
-    background: #4f46e5;
-    color: white;
-  }
-
-  .btn-outline-warning {
-    background: #f59e0b;
-    color: white;
-  }
-
-  .btn-outline-danger {
-    background: #ef4444;
-    color: white;
-  }
-
-  /* =========================
-   MODAL (aligned with your CSS)
-========================= */
-  #editModal {
-    position: fixed;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.45);
-  }
-
-  #editModal.active {
-    display: flex;
-  }
-
-  .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-  }
-
-  .container{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .layout{
-    display: flex;
-    gap: 20px;
-  }
-
-  .sidebar{
-    display: flex;
-    flex: 0.4;
-    flex-direction: column;    
-    background: #fff4e8;
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    height: fit-content;
-  }
-
-  .create-session-form{    
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    
-  }
-
-  .create-session-form textarea{    
-    height: 100px;
-    width: -webkit-fill-available;
-    border:1px solid black;
-    border-radius: 5px;
-  }
-
-  .create-session-form input{
-    padding: 10px;
-    border:1px solid black;
-    border-radius: 5px;
-  }
-
-  .create-session-form button{
-    padding: 10px;
-    border-radius: 5px;
-  }
-
-  .sessions-section{    
-    flex: 0.6;  
-    background: #fff4e8;
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    gap: 10px;
-  }
-
-  #sessionsGrid{
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-
-  .session-footer .btn-group{
-    display: flex;
-    gap: 10px;
-  }
-  
-  .session{
-    display: flex;
-    justify-content: space-between;    
-    background: #fff4e8;
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    border: 1px solid black;
-  }
-
-  .session .session-body{
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-
-  .session .session-footer{
-    display: flex;
-    gap: 10px;
-  }
-
-
-
-
-  
 </style>
 
 <div class="container">
@@ -159,34 +24,35 @@
     <h1>Story Sessions</h1>
     <p class="lead">Manage your writing sessions and progress</p>
   </div>
-
-  <!-- Second Row: Two Columns -->
-  <div class="layout">
-
+  <div class="row mt-4">
     <!-- Sidebar -->
-    <div class="sidebar">
-      <h3>Create Session</h3>
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm">
+        <h5>Create Session</h5>
+        <form method="POST" action="{{ url_for('create_session') }}">
+          <div class="mb-2">
+            <label class="form-label">Session Title</label>
+            <input type="text" class="form-control" name="session_name" required>
+          </div>
 
-      <form class="create-session-form" method="POST" action="{{ url_for('create_session') }}">
-        <label>Session Title</label>
-        <input type="text" name="session_name" required>
+          <div class="mb-2">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="session_description" rows="3"></textarea>
+          </div>
 
-        <label>Description</label>
-        <textarea name="session_description" rows="3"></textarea>
-
-        <button type="submit" class="btn-primary">Create Session</button>
-      </form>
+          <button type="submit" class="btn btn-primary w-100">Create Session</button>
+        </form>
+      </div>
     </div>
 
     <!-- Sessions -->
-    <div class="sessions-section">
-      <h2>Your Sessions</h2>
-      <div id="sessionsGrid"></div>
+    <div class="col-md-8">
+      <h4>Your Sessions</h4>
+      <hr>
+      <div id="sessionsGrid" class="row g-3"></div>
     </div>
-
   </div>
 </div>
-
 
 <!-- Edit Session Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
@@ -194,7 +60,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Edit Session</h5>
-        <button type="button" class="btn-danger" onclick="closeModal()">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="POST" action="{{url_for('update_session')}}" id="editSessionForm">
         <div class="modal-body">
@@ -239,40 +105,52 @@
           }
           sessions.forEach(session => {
             const col = document.createElement('div');
-            col.className = 'session';
+            col.className = 'col-12';
+
             col.innerHTML = `
-              <div class="session-left">
-                <div class="session-title">
-                  ${session.session_name}
-                </div>
-                <div class="session-body">
-                  <p class="card-text flex-grow-1 text-muted">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+
+                  <h5 class="card-title">${session.session_name}</h5>
+
+                  <p class="card-text text-muted flex-grow-1">
                     ${session.session_description.slice(0, 50) + (session.session_description.length > 50 ? '...' : '') || 'No description'}
-                  </p>       
-                  <small class="text-muted mt-auto">
+                  </p>
+
+                  <small class="text-muted">
                     Created: ${session.timestamp}
                   </small>
-                  <small class="text-muted">
-                    Session ID: ${session.session_id}
+
+                  <small class="text-muted d-block mb-2">
+                    ID: ${session.session_id}
                   </small>
-                </div>
-              </div>
-              <div class="session-right">
-                <div class="session-footer">
-                  <div class="btn-group">                  
-                    <a href="/session/${session.session_id}" class="btn btn-outline-primary">
-                      <i class="bi bi-box-arrow-up-right"></i> Open
+
+                  <div class="d-flex justify-content-between mt-auto">
+
+                    <a href="/session/${session.session_id}" class="btn btn-sm btn-outline-primary">
+                      Open
                     </a>
-                    <button class="btn btn-outline-warning edit-session me-1" data-id="${session.session_id}" data-name="${session.session_name}" data-desc="${session.session_description}" data-timestamp="${session.timestamp}">
-                      <i class="bi bi-pencil"></i> Edit
-                    </button>
-                  </div>                    
-                  <button class="btn btn-outline-danger delete-session me-1" data-id="${session.session_id}" data-timestamp="${session.timestamp}">
-                    <i class="bi bi-trash"></i> Delete
-                  </button>              
+
+                    <div>
+                      <button class="btn btn-sm btn-outline-warning edit-session"
+                        data-id="${session.session_id}"
+                        data-name="${session.session_name}"
+                        data-desc="${session.session_description}"
+                        data-timestamp="${session.timestamp}">
+                        Edit
+                      </button>
+
+                      <button class="btn btn-sm btn-outline-danger delete-session"
+                        data-id="${session.session_id}"
+                        data-timestamp="${session.timestamp}">
+                        Delete
+                      </button>
+                    </div>
+
+                  </div>
                 </div>
               </div>
-          `;
+            `;
             grid.appendChild(col);
           });
           initEditListeners();
@@ -284,15 +162,17 @@
 
   function initEditListeners() {
     const editButtons = document.querySelectorAll('.edit-session');
-    const modal = document.getElementById('editModal');
+
     editButtons.forEach(button => {
       button.addEventListener('click', function () {
         document.getElementById('editId').value = this.dataset.id;
         document.getElementById('editName').value = this.dataset.name;
         document.getElementById('editDesc').value = this.dataset.desc;
         document.getElementById('timestamp').value = this.dataset.timestamp;
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+
+        // 🔥 Bootstrap modal trigger
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
       });
     });
   }
@@ -329,12 +209,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     getSessions();
   });
-
-  function closeModal() {
-    const modal = document.getElementById('editModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
-  }
 
   document.getElementById('editModal').addEventListener('click', function (e) {
     const modalBox = this.querySelector('.modal-dialog');
