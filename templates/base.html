@@ -3,32 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Writer Copilot AI{% endblock %}</title>
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>{% block title %}Writer Copilot AI{% endblock %}</title>    
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
+
     {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar navbar-dark bg-dark">
 		<a href="/" class="navbar-brand">🖊 Writer Copilot</a>
 		<button class="navbar-toggle" onclick="toggleNavbar()">☰</button>
-		<!-- <div class="navbar-menu" id="navbarMenu">
-			<div class="navbar-buttons">
-				<button onclick="openModal()" class="btn btn-success" id="startBtn">Write from Scratch</button>
-				
-				<button onclick="saveStory()" class="btn btn-primary">Save</button>
-				<button onclick="continueWithAI()" class="btn btn-success" id="continueBtn">Continue With AI</button>
-				<button onclick="stopGeneration()" class="btn btn-danger" id="stopBtn" style="display:none;">Stop Generation</button>
-			</div>
-			<div class="navbar-stats">
-				<div class="stats msg">READY</div>
-				<div class="stats">Total words: <span id="totalWords">0</span></div>
-			</div>
-		</div> -->
 	</nav>
-
-    <!-- <main class="container mt-4">
-	</main> -->
 	{% with messages = get_flashed_messages(with_categories=true) %}
 		{% if messages %}
 			{% for category, message in messages %}
@@ -40,11 +24,7 @@
 		{% endif %}
 	{% endwith %}
 
-	{% block content %}{% endblock %}
-
-    
-
-    
+	{% block content %}{% endblock %}    
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

@@ -52,13 +52,14 @@ def update_session():
         data = request.form
         print(data)
         timestamp = data['timestamp']
+        sess_id = data['id']
         sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
         session_dict = {}
-        with open(f'{sess_dir}/session_{timestamp}.json', 'r') as f:
+        with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
             session_dict = json.load(f)
         session_dict['session_name'] = data['name']
         session_dict['session_description'] = data['description']
-        with open(f'{sess_dir}/session_{timestamp}.json', 'w') as f:
+        with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'w') as f:
             # convert session_dict to json
             json.dump(session_dict, f)
             flash("Session updated successfully!", "success")
@@ -74,15 +75,16 @@ def create_session():
     data = request.form
     print(data)
     timestamp = str(int(round(time.time() * 1000)))
+    sess_id = str(uuid.uuid4())
     session_dict = {
-        "session_id": str(uuid.uuid4()),
+        "session_id": sess_id,
         "timestamp": timestamp,
         "session_name": data['session_name'],
         "session_description": data['session_description']
     }
     create_session_directory()
     sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
-    with open(f'{sess_dir}/session_{timestamp}.json', 'w') as f:
+    with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'w') as f:
         # convert session_dict to json
         json.dump(session_dict, f)
     flash("Session created successfully!", "success")
@@ -93,11 +95,25 @@ def create_session():
 def get_sessions():
     sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
     sessions = []
-    for file in os.listdir(sess_dir):
+    # sort the sessions by timestamp
+    sess_list=os.listdir(sess_dir)
+    sess_list.sort(key=lambda x: os.path.getmtime(f'{sess_dir}/{x}'), reverse=True)
+    for file in sess_list:
         if file.endswith(".json"):
-            with open(f'{sess_dir}/{file}', 'r') as f:
+            with open(os.path.join(sess_dir, file), 'r') as f:
                 sessions.append(json.load(f))
     return jsonify({"status": "success", "sessions": sessions})
+
+@app.route('/session/<id>', methods=['GET'])
+def view_session(id):
+    sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+    with open(os.path.join(sess_dir, f'session_{id}.json'), 'r') as f:
+        session = json.load(f)
+    return render_template('view_session.html', session=session)
+
+
+
+
 
 @app.route('/delete_session', methods=['POST'])
 def delete_session():
@@ -105,7 +121,8 @@ def delete_session():
         data = request.get_json()
         print(data)
         sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
-        os.remove(f'{sess_dir}/session_{data["timestamp"]}.json')        
+        filepath = os.path.join(sess_dir, f'session_{data["id"]}.json')
+        os.remove(filepath)
     except Exception as e:
         print(e)
         return jsonify({"status": "error", "message": str(e)})
@@ -388,3 +405,4 @@ def stop_generation():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

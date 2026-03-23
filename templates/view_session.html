@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block title %}Sessions - Writer Copilot AI{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+	integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+<style>
+	body {
+		background-color: #f5f5f5;
+		font-family: Arial, sans-serif;
+	}
+
+	.text-area {
+		height: 100px;
+	}
+
+	.bordered {
+		border: 1px solid #ccc;
+		padding: 10px;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		padding: 10px;
+	}
+
+	.text-small {
+		font-size: 12px;
+	}
+
+	.desc {
+		font-size: 14px;
+	}
+
+	.bold {
+		font-weight: bold;
+	}
+
+	.verdana {
+		font-family: Verdana, Geneva, Tahoma, sans-serif;
+	}
+
+	label {
+		font-size: 14px;
+	}
+</style>
+<div class="container">
+	<div class="row">
+		<div class="col-md-3">
+			<div class="bordered">
+				<h2 class="bold">{{ session.session_name|upper }}</h2>
+				<hr>
+				<p class="text-muted desc">{{ session.session_description }}</p>
+				<p class="text-muted text-small" id="created">{{ session.timestamp }}</p>
+			</div>
+			<div class="bordered">
+				<div class="form-group gap-10">
+					<h5 class="text-muted verdana">Story Parameters</h5>
+					<label for="mainConflict">Main conflict</label>
+					<textarea class="form-control text-area" placeholder="What is the central conflict?"
+						id="mainConflict"></textarea>
+
+					<label for="protagonist">Protagonist</label>
+					<textarea class="form-control text-area" placeholder="Who is the main character?"
+						id="protagonist"></textarea>
+
+					<label for="storyPerson">Person</label>
+					<select class="form-control" title="Person" name="storyPerson" id="storyPerson">
+						<option value="First Person">First Person</option>
+						<option value="Third Person" default>Third Person</option>
+					</select>
+
+					<label for="openingScene">Opening scene</label>
+					<textarea class="form-control text-area" placeholder="What happens in the first scene?"
+						id="openingScene"></textarea>
+
+					<label for="storyType">Story Type</label>
+					<select class="form-control" title="Story Type" name="storyType" id="storyType">
+						<option value="Novella">Novella</option>
+						<option value="Short Story" default>Short Story</option>
+						<option value="Long Story">Long Story</option>
+						<option value="Novel">Novel</option>
+					</select>
+					<label for="wordsToGenerate">Words to Generate</label>
+					<input type="number" class="form-control" placeholder="Number of words to generate"
+						id="wordsToGenerate" value="300" />
+					<button class="btn btn-primary" onclick="sendDataToLLM(generatePlots=true,el=this)">Generate
+						Plots</button>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+	integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+	crossorigin="anonymous"></script>
+{% endblock %}
+{% block scripts %}
+<script>
+	const ts_elem = document.getElementById('created');
+	function timeAgo(timestamp) {
+		const now = new Date();
+		const date = new Date(Number(timestamp)); // already in ms
+		const seconds = Math.floor((now - date) / 1000);
+
+		if (seconds < 5) return "Just now";
+
+		const intervals = [
+			{ label: "year", seconds: 31536000 },
+			{ label: "month", seconds: 2592000 },
+			{ label: "day", seconds: 86400 },
+			{ label: "hour", seconds: 3600 },
+			{ label: "minute", seconds: 60 },
+			{ label: "second", seconds: 1 }
+		];
+
+		for (const interval of intervals) {
+			const count = Math.floor(seconds / interval.seconds);
+			if (count >= 1) {
+				return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
+			}
+		}
+	}
+
+	function convertToAgoFormat(rawText) {
+		const timestamp = rawText.replace("Created:", "").trim();
+
+		const result = timeAgo(timestamp);
+
+		if (!result) {
+			console.error("Invalid timestamp:", rawText);
+			return;
+		}
+
+		ts_elem.textContent = `Created: ${result}`;
+	}
+
+	convertToAgoFormat(ts_elem.textContent);
+</script>
+{% endblock %}
