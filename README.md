@@ -199,6 +199,7 @@ Ideal for:
 * UI is functional but not fully polished
 * Output quality depends on selected local model
 * No cloud sync
+* LMStudio is required for hosting the LLM. (**important**)
 
 ---
 
