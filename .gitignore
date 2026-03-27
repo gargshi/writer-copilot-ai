@@ -3,6 +3,7 @@
 
 # Ignore vscode settings
 /.vscode
+.hintrc
 
 # Ignore dotenv
 .env

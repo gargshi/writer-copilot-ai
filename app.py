@@ -51,14 +51,22 @@ def update_session():
     try:
         data = request.form
         print(data)
-        timestamp = data['timestamp']
         sess_id = data['id']
         sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
         session_dict = {}
         with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
             session_dict = json.load(f)
-        session_dict['session_name'] = data['name']
-        session_dict['session_description'] = data['description']
+        fields=data.keys()
+        session_dict['session_name'] = data['name'] if 'name' in fields else session_dict['session_name']
+        session_dict['session_description'] = data['description'] if 'description' in fields else session_dict['session_description']
+
+        if 'used_plot' in fields:
+            session_dict['plots']['used']=json.loads(data['used_plot'])
+        
+        if 'save_plot' in fields:
+            if json.loads(data['save_plot']) not in session_dict['plots']['saved']:
+                session_dict['plots']['saved'].append(json.loads(data['save_plot']))
+        
         with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'w') as f:
             # convert session_dict to json
             json.dump(session_dict, f)
@@ -67,7 +75,7 @@ def update_session():
         print(e)
         flash("Error creating session", "error")
     
-    return redirect(url_for('sessions'))
+    return redirect(url_for('view_session', id=sess_id))
 
 
 @app.route('/create_session', methods=['POST'])
@@ -80,7 +88,12 @@ def create_session():
         "session_id": sess_id,
         "timestamp": timestamp,
         "session_name": data['session_name'],
-        "session_description": data['session_description']
+        "session_description": data['session_description'],
+        "plots": {
+            "available":[],
+            "used":{},
+            "saved":[]
+        }        
     }
     create_session_directory()
     sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
@@ -228,68 +241,60 @@ def give_data_to_llm():
     # 1. NO ABUSIVE LANGUAGE.
     # 2. Do NOT provide the title.
     # """
-    prompt = f"""
-        You are a renowned novelist and story architect.
+    prompt = fprompt = f"""
+        You are an expert story architect.
 
-        Your task is to generate up to 5 distinct and compelling plotlines based on the given inputs.
+        Task:
+        Generate EXACTLY {data["noOfPlots"]} unique plotlines based on the inputs.
 
-        Each plotline should:
-        - Be 3–5 sentences long
-        - Clearly describe the core idea, conflict, and direction of the story
-        - Be unique from the others (no repetition or minor variations)
-        - Be engaging and imaginative
+        Each plotline must contain:
+        - core_idea: 3–5 sentences describing the premise
+        - protagonist: who they are
+        - conflict: central struggle
+        - stakes: what is at risk
+        - direction: where the story is heading
+
+        Requirements:
+        - All plotlines must be clearly different
+        - Do not repeat or rephrase ideas
+        - Be imaginative but concise
+        - Fill missing details creatively
 
         Inputs:
         Main conflict: {data["mainConflict"]}
         Protagonist: {data["protagonist"]}
         Opening scene: {data["openingScene"]}
         Story Type: {data["storyType"]}
-        Narration Style (Person): {data["storyPerson"]}
+        Narration Style: {data["storyPerson"]}
 
-        Instructions:
-        - If any detail is missing, creatively fill in the gaps
-        - Do NOT write full scenes or dialogues
-        - Do NOT include a title
-        - Do NOT use abusive or inappropriate language
-        - Focus only on high-level story ideas (plotlines)
+        Output:
+        Return ONLY a valid JSON array with EXACTLY {data["noOfPlots"]} objects.
 
-        Return in STRICTLY valid  JSON Format as below:
+        Schema (STRICT):
         [
-            {{
-                "title": "Plotline 1",
-                "core_idea": "...",
-                "protagonist": "...",
-                "conflict": "...",
-                "stakes": "...",
-                "direction": "..."
-            }},
-            {{
-                "title": "Plotline 2",
-                "core_idea": "...",
-                "protagonist": "...",
-                "conflict": "...",
-                "stakes": "...",
-                "direction": "..."
-            }},
-            {{
-                "title": "Plotline 3",
-                "core_idea": "...",
-                "protagonist": "...",
-                "conflict": "...",
-                "stakes": "...",
-                "direction": "..."
-            }},
-            ...
+        {{
+            "title": "Plotline 1",
+            "core_idea": "string",
+            "protagonist": "string",
+            "conflict": "string",
+            "stakes": "string",
+            "direction": "string"
+        }}
         ]
 
-        Rules:
-        - Do NOT include markdown (** or -)
-        - Do NOT include explanations
-        - Do NOT include text outside JSON
-        - Ensure valid JSON syntax
-        ...
+        Field constraints:
+        - All values MUST be plain strings
+        - Do NOT return nested objects or arrays
+        - Do NOT use lists, bullet points, or special formatting inside values
 
-        Keep the response concise and structured.
+        Critical Rules:
+        - Output ONLY JSON (no text before or after)
+        - Start response with '[' and end with ']'
+        - Use double quotes for all keys and values
+        - Do NOT include trailing commas
+        - Titles MUST be sequential: "Plotline 1", "Plotline 2", ..., "Plotline {data["noOfPlots"]}"
+        - Generate EXACTLY {data["noOfPlots"]} objects (no more, no less)
+        - Do not truncate output
         """
     return llm_prompt(prompt, show_think=True)
 

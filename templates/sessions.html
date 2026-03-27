@@ -28,16 +28,16 @@
     <!-- Sidebar -->
     <div class="col-md-4">
       <div class="card p-3 shadow-sm">
-        <h5>Create Session</h5>
+        <h5>Create a New Session</h5>
         <form method="POST" action="{{ url_for('create_session') }}">
           <div class="mb-2">
-            <label class="form-label">Session Title</label>
-            <input type="text" class="form-control" name="session_name" required>
+            <label class="form-label" for="session_name">Session Title</label>
+            <input type="text" title="Session Title" class="form-control" name="session_name" required>
           </div>
 
           <div class="mb-2">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" name="session_description" rows="3"></textarea>
+            <label class="form-label" for="session_description">Description</label>
+            <textarea title="Description" class="form-control" name="session_description" rows="3"></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary w-100">Create Session</button>

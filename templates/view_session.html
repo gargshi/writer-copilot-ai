@@ -15,7 +15,9 @@
 
 	.text-area {
 		height: 100px;
+		font-size: 14px;
 	}
+
 
 	.bordered {
 		border: 1px solid #ccc;
@@ -27,6 +29,10 @@
 		flex-direction: column;
 		gap: 10px;
 		padding: 10px;
+	}
+
+	.form-control {
+		font-size: 14px;
 	}
 
 	.text-small {
@@ -42,11 +48,42 @@
 	}
 
 	.verdana {
-		font-family: Verdana, Geneva, Tahoma, sans-serif;
+		font-family: Arial, Helvetica, sans-serif, Geneva, Tahoma, sans-serif;
 	}
 
 	label {
 		font-size: 14px;
+	}
+
+	.plot {
+		font-size: 14px;
+	}
+
+	.genplotbtn {
+		font-size: 14px;
+	}
+
+	.card-header .plot-title {
+		font-weight: 500;
+		transition: font-weight 0.5s ease-in-out;
+	}
+
+	.card-header[aria-expanded="true"] .plot-title {
+		font-weight: 700;
+	}
+
+	.card-header span {
+		transition: transform 0.2s ease;
+	}
+
+	.card-header[aria-expanded="true"] span {
+		transform: rotate(180deg);
+	}
+
+	#aiOutput {
+		font-size: 14px;
+		height: 500px;
+		overflow: auto;
 	}
 </style>
 <div class="container">
@@ -56,48 +93,86 @@
 				<h2 class="bold">{{ session.session_name|upper }}</h2>
 				<hr>
 				<p class="text-muted desc">{{ session.session_description }}</p>
+
 				<p class="text-muted text-small" id="created">{{ session.timestamp }}</p>
+				<p class="text-muted text-small" id="sessionid">{{ session.session_id }}</p>
+				<a href="{{ url_for('sessions') }}">Back</a>
 			</div>
 			<div class="bordered">
-				<div class="form-group gap-10">
-					<h5 class="text-muted verdana">Story Parameters</h5>
-					<label for="mainConflict">Main conflict</label>
-					<textarea class="form-control text-area" placeholder="What is the central conflict?"
-						id="mainConflict"></textarea>
+				<div class="accordion" id="leftAccordion">
+					<div class="accordion-item">
+						<h2 class="accordion-header">
+							<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+								data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+								Story Parameters
+							</button>
+						</h2>
+						<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+							data-bs-parent="#leftAccordion">
+							<div class="accordion-body">
+								<div class="form-group gap-10">
+									<h5 class="text-muted verdana">Story Parameters</h5>
+									<label for="mainConflict">Main conflict</label>
+									<textarea class="form-control text-area" placeholder="What is the central conflict?"
+										id="mainConflict"></textarea>
 
-					<label for="protagonist">Protagonist</label>
-					<textarea class="form-control text-area" placeholder="Who is the main character?"
-						id="protagonist"></textarea>
+									<label for="protagonist">Protagonist</label>
+									<textarea class="form-control text-area" placeholder="Who is the main character?"
+										id="protagonist"></textarea>
 
-					<label for="storyPerson">Person</label>
-					<select class="form-control" title="Person" name="storyPerson" id="storyPerson">
-						<option value="First Person">First Person</option>
-						<option value="Third Person" default>Third Person</option>
-					</select>
+									<label for="storyPerson">Person</label>
+									<select class="form-control" title="Person" name="storyPerson" id="storyPerson">
+										<option value="First Person">First Person</option>
+										<option value="Third Person" default>Third Person</option>
+									</select>
 
-					<label for="openingScene">Opening scene</label>
-					<textarea class="form-control text-area" placeholder="What happens in the first scene?"
-						id="openingScene"></textarea>
+									<label for="openingScene">Opening scene</label>
+									<textarea class="form-control text-area" placeholder="What happens in the first scene?"
+										id="openingScene"></textarea>
 
-					<label for="storyType">Story Type</label>
-					<select class="form-control" title="Story Type" name="storyType" id="storyType">
-						<option value="Novella">Novella</option>
-						<option value="Short Story" default>Short Story</option>
-						<option value="Long Story">Long Story</option>
-						<option value="Novel">Novel</option>
-					</select>
-					<label for="wordsToGenerate">Words to Generate</label>
-					<input type="number" class="form-control" placeholder="Number of words to generate"
-						id="wordsToGenerate" value="300" />
-					<button class="btn btn-primary" onclick="sendDataToLLM(generatePlots=true,el=this)">Generate
-						Plots</button>
+									<label for="storyType">Story Type</label>
+									<select class="form-control" title="Story Type" name="storyType" id="storyType">
+										<option value="Novella">Novella</option>
+										<option value="Short Story" default>Short Story</option>
+										<option value="Long Story">Long Story</option>
+										<option value="Novel">Novel</option>
+									</select>
+									<label for="noOfPlots">Number of plots to generate</label>
+									<input type="number" class="form-control" placeholder="Number of plots" id="noOfPlots" value="1" />
+
+									<label for="wordsToGenerate">Words to Generate</label>
+									<input type="number" class="form-control" placeholder="Number of words to generate"
+										id="wordsToGenerate" value="300" />
+									<button class="btn btn-primary genplotbtn"
+										onclick="sendDataToLLM(generatePlots=true,el=this)">Generate Plots</button>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
+				
 			</div>
 		</div>
-
+		<div class="col-md-6">
+			<div class="bordered">
+				<h4 class="bold">Plots</h4>
+				<hr>
+				<div id="status"></div>
+				<!-- <div id="plots"></div> -->
+				<div class="accordion" id="plots"></div>
+			</div>
+			<div class="bordered">
+				<h4 class="bold">Generated Story</h4>
+				<div id="storyPlot"></div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<h4>AI output</h4>
+			<button onclick="stopGeneration()" class="btn btn-danger" id="stopBtn" style="display:none;">Stop
+				Generation</button>
+			<p class="text-muted text-small" id="aiOutput"></p>
+		</div>
 	</div>
-</div>
-
 </div>
 
 {% endblock %}
@@ -142,5 +217,293 @@
 	}
 
 	convertToAgoFormat(ts_elem.textContent);
+
+
+	const test_data = {
+		mainConflict: "a war is happening in a certain location.",
+		protagonist: "we have a sniper positioned on a rooftop",
+		openingScene: "he notices some activity on the road",
+		wordsToGenerate: "300",
+		storyType: "Short Story",
+		storyPerson: "Third Person",
+		noOfPlots: "1"
+	};
+
+	let plotsTextfromAI = "";
+	let useCachedPlots = !true;
+	let useTestData = true;
+	let plots = [];
+	const sessionId = "{{ session.session_id }}";
+	const stopButton = document.getElementById("stopBtn");
+	const aiOutput = document.getElementById("aiOutput");
+	//console.log("Session id",sessionId);
+
+
+	sendDataToLLM = async function () {
+
+		const mainConflict = useTestData ? test_data.mainConflict : document.getElementById("mainConflict").value;
+		const protagonist = useTestData ? test_data.protagonist : document.getElementById("protagonist").value;
+		const openingScene = useTestData ? test_data.openingScene : document.getElementById("openingScene").value;
+		const wordsToGenerate = useTestData ? test_data.wordsToGenerate : document.getElementById("wordsToGenerate").value;
+		const storyType = useTestData ? test_data.storyType : document.getElementById("storyType");
+		const storyPerson = useTestData ? test_data.storyPerson : document.getElementById("storyPerson");
+		const noOfPlots = useTestData ? test_data.noOfPlots : document.getElementById("noOfPlots").value;
+
+		/* Update sidebar */
+
+		document.getElementById("mainConflict").value = mainConflict;
+		document.getElementById("protagonist").value = protagonist;
+		document.getElementById("openingScene").value = openingScene;
+		document.getElementById("wordsToGenerate").value = wordsToGenerate;
+		document.getElementById("storyType").value = storyType;
+		document.getElementById("storyPerson").value = storyPerson;
+		document.getElementById("noOfPlots").value = noOfPlots;
+
+
+		// 🔥 HARD RESET BEFORE NEW REQUEST
+		plotsTextfromAI = "";
+		document.getElementById("aiOutput").innerHTML = "";
+
+		controller = new AbortController();
+
+		try {
+			if (!useCachedPlots) {
+				const response = await fetch('/send_data_to_llm', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						mainConflict,
+						protagonist,
+						openingScene,
+						wordsToGenerate,
+						storyType,
+						storyPerson,
+						noOfPlots
+					}),
+					signal: controller.signal
+				});
+
+				if (!response.body) {
+					throw new Error("Streaming not supported");
+				}
+
+				const reader = response.body.getReader();
+				const decoder = new TextDecoder();
+				currentRequestId = response.headers.get("X-Request-ID");
+				status.innerText = (!generatePlots) ? "Generating Story..." : "Generating Plots... Please wait...";
+
+				stopButton.style.display = "inline-block";
+
+				const thisRequestId = currentRequestId;  // 🔥 ADD THIS BEFORE LOOP
+
+
+				while (true) {
+
+					const { done, value } = await reader.read();
+
+					if (done) break;
+
+					// 🔥 IGNORE OLD STREAM DATA
+					if (thisRequestId !== currentRequestId) {
+						console.log("Old stream ignored");
+						break;
+					}
+
+					const chunk = decoder.decode(value, { stream: true });
+
+					if (!generatePlots) {
+						editor.value += chunk;
+						editor.scrollTop = editor.scrollHeight;
+						updateWordCount(editor.value);
+					}
+					plotsTextfromAI += chunk;
+					aiOutput.innerHTML = plotsTextfromAI;
+					aiOutput.scrollTop = aiOutput.scrollHeight;
+				}
+			}
+			await populatePlots();
+		} catch (error) {
+			if (error.name === "AbortError") {
+				console.log("⛔ Generation stopped");
+
+			} else {
+				console.error("AI continuation failed:", error);
+				alert("Failed to continue story.");
+
+			}
+		}
+	};
+	populatePlots = async function () {
+		//console.log("Entering populatePlots function");
+		setTimeout(() => {
+			status.innerText = "Generating Plots... Please wait...";
+		}, 3000);
+		const plotsDiv = document.getElementById("plots");
+		plotsDiv.innerHTML = "";
+		plots = plotsTextfromAI.trim();
+		console.log("plotsTextfromAI:", plotsTextfromAI);
+		plots = useCachedPlots ? JSON.parse(localStorage.getItem("plots")) : plots;
+		if (!useCachedPlots) {
+			localStorage.setItem("plots", JSON.stringify(plots));
+		}
+		//console.log("plots:", plots);		
+
+		try {
+			const parsed = JSON.parse(plotsTextfromAI);
+
+			// 🔥 Handle both formats
+			if (Array.isArray(parsed)) {
+				plots = parsed;
+			} else if (Array.isArray(parsed.plotlines)) {
+				plots = parsed.plotlines;
+			} else {
+				throw new Error("Invalid structure: plotlines not found");
+			}
+
+		} catch (e) {
+			console.error("JSON parsing failed:", e);
+			return;
+		}
+
+		console.log("plots length:", plots.length);
+
+		for (let i = 0; i < plots.length; i++) {
+			const plot = plots[i];
+			const plotDiv = document.createElement("div");
+			plotDiv.classList.add("plot");
+			plotDiv.classList.add("accordion-item");
+			plotDiv.innerHTML = `				
+				<h2 class="accordion-header">
+					<button class="accordion-button" type="button"
+						data-bs-toggle="collapse"
+						data-bs-target="#collapse-${i}"
+						aria-expanded="true">
+						${plot.title}
+					</button>
+				</h2>
+
+				<div id="collapse-${i}" class="accordion-collapse collapse show">
+					<div class="accordion-body">
+						<div class="row g-3">
+							<div class="col-md-12">
+								<h6 class="text-muted">Core Idea</h6>
+								<textarea class="form-control text-area">${plot.core_idea}</textarea>
+							</div>
+
+							<div class="col-md-6">
+								<h6 class="text-muted">Protagonist</h6>
+								<textarea class="form-control text-area">${plot.protagonist}</textarea>
+							</div>
+
+							<div class="col-md-6">
+								<h6 class="text-muted">Conflict</h6>
+								<textarea class="form-control text-area">${plot.conflict}</textarea>
+							</div>
+
+							<div class="col-md-6">
+								<h6 class="text-muted">Stakes</h6>
+								<textarea class="form-control text-area">${plot.stakes}</textarea>
+							</div>
+
+							<div class="col-12">
+								<h6 class="text-muted">Direction</h6>
+								<textarea class="form-control text-area">${plot.direction}</textarea>
+							</div>
+
+						</div>
+
+						<div class="d-flex justify-content-between mt-3">
+							<div>
+								<button class="btn btn-success btn-sm" onclick="usePlot(${i})">
+									Use this plot
+								</button>
+								<button class="btn btn-success btn-sm" onclick="savePlotForLater(${i})">
+									Save this plot for later
+								</button>
+							</div>
+
+							<button class="btn btn-danger btn-sm" onclick="rejectPlot(${i})">
+								Reject Plot
+							</button>
+						</div>
+					</div>
+				</div>
+			`;
+			plotsDiv.appendChild(plotDiv);
+		}
+		stopButton.style.display = "none";
+	};
+
+	function usePlot(i) {
+		const plot = plots[i];
+		//console.log(plot);
+
+		//console.log(`${ plot.core_idea } \n\n${ plot.protagonist } \n\n${ plot.conflict } \n\n${ plot.stakes } \n\n${ plot.direction } \n\n`);
+
+		fetch('/update_session', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				id: sessionId,   // make sure you have this
+				used_plot: JSON.stringify(plot)
+			})
+		});
+	}
+
+	function savePlotForLater(i) {
+		const plot = plots[i];
+		fetch('/update_session', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				id: sessionId,   // make sure you have this
+				save_plot: JSON.stringify(plot)
+			})
+		});
+	}
+
+
+	//for testing, loading plots from ls directly
+	if (useCachedPlots) {
+		sendDataToLLM();
+	}
+
+	stopGeneration = async function () {
+
+		// stop frontend
+		if (controller) {
+			controller.abort();
+		}
+
+		// spam check
+		if (!currentRequestId) return;
+
+		// 🔥 stop backend
+		if (currentRequestId) {
+			await fetch("/stop_generation", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					request_id: currentRequestId
+				})
+			});
+		}
+		// 🔥 FULL RESET
+		currentRequestId = null;
+		plotsTextfromAI = "";
+
+		aiOutput.innerHTML = "";
+		stopButton.style.display = "none";
+
+
+	};
 </script>
 {% endblock %}
