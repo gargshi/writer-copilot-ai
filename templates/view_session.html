@@ -18,6 +18,14 @@
 		font-size: 14px;
 	}
 
+	.text-justify {
+		text-align: justify;
+	}
+
+	.h-500 {
+		height: 500px;
+	}
+
 
 	.bordered {
 		border: 1px solid #ccc;
@@ -127,8 +135,8 @@
 									</select>
 
 									<label for="openingScene">Opening scene</label>
-									<textarea class="form-control text-area" placeholder="What happens in the first scene?"
-										id="openingScene"></textarea>
+									<textarea class="form-control text-area"
+										placeholder="What happens in the first scene?" id="openingScene"></textarea>
 
 									<label for="storyType">Story Type</label>
 									<select class="form-control" title="Story Type" name="storyType" id="storyType">
@@ -138,19 +146,52 @@
 										<option value="Novel">Novel</option>
 									</select>
 									<label for="noOfPlots">Number of plots to generate</label>
-									<input type="number" class="form-control" placeholder="Number of plots" id="noOfPlots" value="1" />
+									<input type="number" class="form-control" placeholder="Number of plots"
+										id="noOfPlots" value="1" />
 
 									<label for="wordsToGenerate">Words to Generate</label>
 									<input type="number" class="form-control" placeholder="Number of words to generate"
 										id="wordsToGenerate" value="300" />
 									<button class="btn btn-primary genplotbtn"
-										onclick="sendDataToLLM(generatePlots=true,el=this)">Generate Plots</button>
+										onclick="sendDataToLLM(generate='plots',el=this)">Generate Plots</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="accordion-item">
+						<h2 class="accordion-header">
+							<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+								data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+								Selected Plot
+							</button>
+						</h2>
+						<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
+							data-bs-parent="#leftAccordion">
+							<div class="accordion-body">
+								<div class="form-group gap-10" id="selectedPlot">
+									<h5 class="text-muted verdana">Selected Plot</h5>
+									<h6>Core Idea</h6>
+									<textarea class="form-control text-area" id="coreIdea"
+										placeholder="What is the core idea?"></textarea>
+									<h6>Protagonist</h6>
+									<textarea class="form-control text-area" id="protagonist"
+										placeholder="Protagonist">${plot.protagonist}</textarea>
+									<h6>Conflict</h6>
+									<textarea class="form-control text-area" id="conflict"
+										placeholder="Conflict">${plot.conflict}</textarea>
+									<h6>Stakes</h6>
+									<textarea class="form-control text-area" id="stakes"
+										placeholder="Stakes">${plot.stakes}</textarea>
+									<h6>Direction</h6>
+									<textarea class="form-control text-area" id="direction"
+										placeholder="Direction">${plot.direction}</textarea>
+									<button class="btn btn-primary genstorybtn"
+										onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				
 			</div>
 		</div>
 		<div class="col-md-6">
@@ -163,7 +204,10 @@
 			</div>
 			<div class="bordered">
 				<h4 class="bold">Generated Story</h4>
-				<div id="storyPlot"></div>
+				<div id="storyPlot">
+					<textarea class="form-control text-area text-justify h-500" id="generatedStory"
+						placeholder="Generated Story"></textarea>
+				</div>
 			</div>
 		</div>
 		<div class="col-md-3">
@@ -231,15 +275,16 @@
 
 	let plotsTextfromAI = "";
 	let useCachedPlots = !true;
-	let useTestData = true;
+	let useTestData = !true;
 	let plots = [];
 	const sessionId = "{{ session.session_id }}";
 	const stopButton = document.getElementById("stopBtn");
 	const aiOutput = document.getElementById("aiOutput");
+	const storyDiv = document.getElementById("generatedStory");
 	//console.log("Session id",sessionId);
 
 
-	sendDataToLLM = async function () {
+	sendDataToLLM = async function (generate, el) {
 
 		const mainConflict = useTestData ? test_data.mainConflict : document.getElementById("mainConflict").value;
 		const protagonist = useTestData ? test_data.protagonist : document.getElementById("protagonist").value;
@@ -262,28 +307,60 @@
 
 		// 🔥 HARD RESET BEFORE NEW REQUEST
 		plotsTextfromAI = "";
+		storyFromPlot = "";
 		document.getElementById("aiOutput").innerHTML = "";
 
 		controller = new AbortController();
 
 		try {
+			let response = null;
 			if (!useCachedPlots) {
-				const response = await fetch('/send_data_to_llm', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						mainConflict,
-						protagonist,
-						openingScene,
-						wordsToGenerate,
-						storyType,
-						storyPerson,
-						noOfPlots
-					}),
-					signal: controller.signal
-				});
+				if (generate == "plots") {
+					response = await fetch('/send_data_to_llm', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							generate,
+							mainConflict,
+							protagonist,
+							openingScene,
+							wordsToGenerate,
+							storyType,
+							storyPerson,
+							noOfPlots
+						}),
+						signal: controller.signal
+					});
+				}
+				if (generate == "story") {
+					let selectedPlot = document.querySelector("#selectedPlot");
+					let core_idea = selectedPlot.querySelector("#coreIdea").value;
+					let protagonist = selectedPlot.querySelector("#protagonist").value;
+					let conflict = selectedPlot.querySelector("#conflict").value;
+					let stakes = selectedPlot.querySelector("#stakes").value;
+					let direction = selectedPlot.querySelector("#direction").value;
+					response = await fetch('/send_data_to_llm', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							mainConflict,
+							generate,
+							core_idea,
+							protagonist,
+							conflict,
+							stakes,
+							direction,
+							wordsToGenerate,
+							storyType,
+							storyPerson
+						}),
+						signal: controller.signal
+					});
+				}
 
 				if (!response.body) {
 					throw new Error("Streaming not supported");
@@ -292,7 +369,7 @@
 				const reader = response.body.getReader();
 				const decoder = new TextDecoder();
 				currentRequestId = response.headers.get("X-Request-ID");
-				status.innerText = (!generatePlots) ? "Generating Story..." : "Generating Plots... Please wait...";
+				//status.innerText = (!generatePlots) ? "Generating Story..." : "Generating Plots... Please wait...";
 
 				stopButton.style.display = "inline-block";
 
@@ -313,17 +390,26 @@
 
 					const chunk = decoder.decode(value, { stream: true });
 
-					if (!generatePlots) {
-						editor.value += chunk;
-						editor.scrollTop = editor.scrollHeight;
-						updateWordCount(editor.value);
+					if (generate == "plots") {
+						plotsTextfromAI += chunk;
+						aiOutput.innerHTML = plotsTextfromAI;
+						aiOutput.scrollTop = aiOutput.scrollHeight;
 					}
-					plotsTextfromAI += chunk;
-					aiOutput.innerHTML = plotsTextfromAI;
-					aiOutput.scrollTop = aiOutput.scrollHeight;
+					else if (generate == "story") {
+						storyFromPlot += chunk;
+						aiOutput.innerHTML = storyFromPlot;
+						//storyDiv.innerHTML = storyFromPlot;						
+						aiOutput.scrollTop = aiOutput.scrollHeight;
+						//storyDiv.scrollTop = storyDiv.scrollHeight;
+					}
 				}
 			}
-			await populatePlots();
+			if (generate == "plots") {
+				await populatePlots();
+			}
+			else if (generate == "story") {
+				await populateStory();//implement saving logic
+			}
 		} catch (error) {
 			if (error.name === "AbortError") {
 				console.log("⛔ Generation stopped");
@@ -335,6 +421,35 @@
 			}
 		}
 	};
+
+	populateStory = async function () {
+		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
+
+		if (!jsonMatch) {
+			throw new Error("No valid JSON found");
+		}
+
+		 let safeJSON = jsonMatch[0];
+
+		// 🔥 Clean control characters
+		safeJSON = safeJSON
+			.replace(/\n/g, "")
+			.replace(/\r/g, "")
+			.replace(/\t/g, " ");
+
+		try {
+			const cleanedStoryFromPlot = JSON.parse(safeJSON);
+			let story = cleanedStoryFromPlot.story;
+
+			// 🔥 Render properly
+			storyDiv.innerHTML = story.replace(/\\n/g, "<br>");
+
+		} catch (e) {
+			console.error("JSON parsing failed:", e);
+			console.log("Problematic JSON:", safeJSON);
+		}
+		stopButton.style.display = "none";
+	}
 	populatePlots = async function () {
 		//console.log("Entering populatePlots function");
 		setTimeout(() => {
@@ -343,7 +458,7 @@
 		const plotsDiv = document.getElementById("plots");
 		plotsDiv.innerHTML = "";
 		plots = plotsTextfromAI.trim();
-		console.log("plotsTextfromAI:", plotsTextfromAI);
+		//console.log("plotsTextfromAI:", plotsTextfromAI);
 		plots = useCachedPlots ? JSON.parse(localStorage.getItem("plots")) : plots;
 		if (!useCachedPlots) {
 			localStorage.setItem("plots", JSON.stringify(plots));
@@ -441,6 +556,14 @@
 		//console.log(plot);
 
 		//console.log(`${ plot.core_idea } \n\n${ plot.protagonist } \n\n${ plot.conflict } \n\n${ plot.stakes } \n\n${ plot.direction } \n\n`);
+
+		const selectedPlot = document.querySelector("#selectedPlot");
+		selectedPlot.querySelector("#coreIdea").value = plot.core_idea;
+		selectedPlot.querySelector("#protagonist").value = plot.protagonist;
+		selectedPlot.querySelector("#conflict").value = plot.conflict;
+		selectedPlot.querySelector("#stakes").value = plot.stakes;
+		selectedPlot.querySelector("#direction").value = plot.direction;
+
 
 		fetch('/update_session', {
 			method: 'POST',
