@@ -1,66 +1,99 @@
 # Writer Copilot (Offline AI Writing Assistant)
 
-An offline-first AI-powered writing assistant designed to help you **generate, continue, and refine stories**, all while running locally with your own LLM.
+Writer Copilot is an offline-first AI writing assistant designed to help you generate, structure, and expand stories—while keeping full control over your data and workflow.
+
+Built for creators who want more than just text generation, it introduces a session-based writing system with plot exploration and controlled story expansion.
 
 ---
 
-## Overview
+## Why Writer Copilot?
 
-Writer Copilot is a lightweight web application that integrates with a **locally hosted LLM (via LM Studio)** to assist writers in crafting compelling stories.
+Most AI writing tools generate text in isolation. Writer Copilot is built around a workflow:
 
-Unlike cloud-based tools, this project focuses on:
+* Think → Generate plots
+* Choose → Select direction
+* Expand → Build full stories
 
-* Privacy (no external API calls required)
-* Speed (local inference)
-* Creativity support (not just generation)
+All of this runs locally on your machine.
+
 ---
-## Features
 
-### AI Story Generation
+## Core Features
 
-* Generate story openings based on:
+### Session-Based Writing
 
-  * Protagonist
-  * Conflict
-  * Setting
-  * Story type
-  * Narrative perspective
+* Create multiple writing sessions
+* Each session stores its own inputs, plots, and story
+* Easily switch between different ideas/projects
 
-### Continue Writing with AI
+---
 
-* Extend your story seamlessly
+### AI Plot Generation
+
+Generate multiple structured plotlines from your inputs:
+
+* Core idea
+* Protagonist
+* Conflict
+* Stakes
+* Direction
+
+Helps you explore different narrative directions before committing.
+
+---
+
+### Plot Selection → Story Generation
+
+* Select a plot you like
+* Generate a full story based on that plot
+* Maintains narrative consistency
+* Designed to reduce randomness and improve coherence
+
+---
+
+### AI Story Continuation (Streaming)
+
+* Expand stories in real time (_being upgraded_)
+* Smooth token-by-token streaming
 * Maintains tone and narrative flow
-* Controlled generation (~300 words for continuation)
+* Interrupt generation anytime
 
-### Draft Management
+---
 
-* Save stories locally as drafts
-* View all saved drafts
-* Load and continue editing
-* Delete drafts when needed
+### Draft & Session Persistence (_being worked on_)
 
-### Streaming Responses
+* Save sessions locally
+* Store plots and generated stories
+* Reload and continue writing anytime
 
-* Real-time text generation from the LLM
-* Optional handling of model "thinking" blocks (`[THINK]`)
+---
+
+### Real-Time Streaming
+
+* Live output from LLM
+* Responsive writing experience
+* Supports interruption via AbortController
+
+---
 
 ### Stop Generation
 
-* Interrupt AI generation mid-way
-* Useful for controlling output length
+* Cancel generation instantly
+* Useful for controlling output length and direction
+
 ---
 
 ## Tech Stack
 
-* **Backend:** Flask (Python)
-* **LLM Integration:** Local model via LM Studio (OpenAI-compatible API)
-* **Frontend:** HTML, CSS, JavaScript
-* **Storage:** Local file system (`.txt` drafts)
-* **Environment Config:** `.env`
+* Backend: Flask (Python)
+* LLM Integration: LM Studio (OpenAI-compatible API)
+* Frontend: HTML, CSS, JavaScript
+* Storage: Local file system (sessions + drafts)
+* Config: .env
 
 ---
 
-## Project Structure
+## Project Structure (_tentative_)
 
 ```
 project/
@@ -72,16 +105,17 @@ project/
 ├── templates/
 │   └── index.html
 │
-├── drafts/              # Stored stories (created when saving a story)
-├── app.py               # Main Flask app
-├── .env                 # Environment variables
+├── sessions/            # Stored sessions (plots + stories)
+├── drafts/              # Optional saved story drafts
+├── app.py               # Flask backend
+├── .env                 # Environment config
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Setup Instructions
+## Setup
 
 ### 1. Clone the repository
 
@@ -94,8 +128,8 @@ cd writer-copilot
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # (Linux/Mac)
-.venv\Scripts\activate     # (Windows)
+source .venv/bin/activate   # Linux/Mac
+.venv\\Scripts\\activate      # Windows
 ```
 
 ### 3. Install dependencies
@@ -104,15 +138,17 @@ source .venv/bin/activate  # (Linux/Mac)
 pip install -r requirements.txt
 ```
 
-### 4. Setup `.env`
+### 4. Configure environment (_tentative_)
 
-Create a `.env` file:
+Create a .env file:
 
 ```
-LMSTUDIO_BASE_URL=http://localhost:1234/v1
-LMSTUDIO_API_KEY=lm-studio
+LMSTUDIO_BASE_URL=http://localhost:<port>/v1
+LMSTUDIO_API_KEY=your-api-key
 LMSTUDIO_MODEL=your-model-name
-DRAFT_FOLDER_NAME=drafts
+DRAFT_FOLDER_NAME=your-drafts-folder
+STORY_SESSIONS_FOLDER_NAME=your-sessions-folder
+APP_SECRET_KEY=your-secret-key
 ```
 
 ---
@@ -123,7 +159,7 @@ DRAFT_FOLDER_NAME=drafts
 python app.py
 ```
 
-Then open:
+Open in browser:
 
 ```
 http://127.0.0.1:5000
@@ -133,53 +169,65 @@ http://127.0.0.1:5000
 
 ## How It Works
 
-1. User provides story parameters
-2. Flask backend builds a structured prompt
-3. Request is sent to local LLM (via LM Studio)
-4. Response is streamed back in real time
-5. Drafts are saved locally for persistence
+1. User creates a session and provides story parameters
+2. AI generates multiple plot options
+3. User selects a plot
+4. AI generates a story based on the selected plot
+5. Story can be extended via streaming (feature_being_rewritten)
+6. Session is saved locally for reuse (feature_being_enhanced)
 
 ---
 
 ## Privacy & Offline Design
 
 * No external API calls required
-* All data stays on your machine
-* Drafts are stored locally
-* Ideal for privacy-conscious writers
+* All processing happens locally
+* Data never leaves your machine
+
+Ideal for:
+
+* Privacy-conscious writers
+* Offline environments
+* Experimenting with local LLMs
 
 ---
 
 ## Current Limitations
 
-* No authentication (single-user, offline design)
+* Single-user system (no authentication)
 * File-based storage (no database yet)
-* Basic UI (focused on functionality first)
-* Depends on locally running LLM
+* UI is functional but not fully polished
+* Output quality depends on selected local model
+* No cloud sync
 
 ---
 
-## Future Improvements
+## Roadmap
 
-* Story structuring assistance (plot, arcs, pacing)
-* Writing feedback & suggestions (not just generation)
-* Draft tagging & organization
-* Version history
+Planned improvements:
+
+* Plot-to-story consistency improvements
+* Story structuring tools (acts, pacing, arcs)
+* Session tagging and organization
+* Version history per session
 * Plugin-style writing tools (dialogue enhancer, tone shifter)
 * Optional cloud sync
+* Story continuation is being reworked.
+* Session persistence is being enhanced.
 
 ---
 
 ## Vision
 
-This project is not just about generating text;
-it aims to become a **true writing companion** that helps users improve their storytelling skills over time.
+Writer Copilot aims to become a structured AI writing system, not just a generator—helping users think in plots, explore ideas, and build better stories step by step.
 
 ---
 
 ## Contributing
 
-Feel free to fork and experiment. Suggestions and improvements are welcome!
+Feel free to fork, experiment, and build on top of this project.
+
+Suggestions and improvements are always welcome.
 
 ---
 
@@ -189,9 +237,10 @@ Built as part of an exploration into:
 
 * Local LLM applications
 * Creative AI tooling
-* Human-AI collaboration in writing
+* Human–AI collaboration in storytelling
 
 ---
 
-*Write better. Think deeper. Stay in control.*
+## Tagline
 
+Write better. Think deeper. Stay in control.
