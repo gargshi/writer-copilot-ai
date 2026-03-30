@@ -1,7 +1,7 @@
 import uuid
 from openai import OpenAI
 from flask import Flask, render_template
-from flask import request, redirect, url_for,flash
+from flask import request, redirect, url_for, flash
 from flask import jsonify
 
 from flask import Response
@@ -46,27 +46,75 @@ def create_session_directory():
 		os.makedirs(sess_dir)
 
 
+def create_key(key, session):
+	session[key] = 'abc'
+
+
 @app.route('/update_session', methods=['POST'])
 def update_session():
 	try:
 		data = request.form
 		print(data)
 		sess_id = data['id']
+		print("Session id :", sess_id)
 		sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
 		session_dict = {}
 		with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
 			session_dict = json.load(f)
-		fields=data.keys()
+		fields = data.keys()
 		session_dict['session_name'] = data['name'] if 'name' in fields else session_dict['session_name']
 		session_dict['session_description'] = data['description'] if 'description' in fields else session_dict['session_description']
+		if 'story_params' not in session_dict.keys():
+			session_dict['story_params'] = {}
+		session_dict['story_params'] = json.loads(
+			data['story_params']) if 'story_params' in fields else session_dict['story_params']
+		# if 'generated_plot' not in session_dict['plots'].keys():
+		# 	session_dict['plots']['generated']=[]
+		# session_dict['plots']['generated'].append(json.loads(data['generated_plot']))
 
-		if 'used_plot' in fields:
-			session_dict['plots']['used']=json.loads(data['used_plot'])
-		
-		if 'save_plot' in fields:
-			if json.loads(data['save_plot']) not in session_dict['plots']['saved']:
-				session_dict['plots']['saved'].append(json.loads(data['save_plot']))
-		
+		if 'used_plot_id' in fields:
+			session_dict['plots']['used'] = data['used_plot_id']
+
+		if 'save_plot_id' in fields:
+			if data['save_plot_id'] not in session_dict['plots']['saved']:
+				session_dict['plots']['saved'].append(data['save_plot_id'])
+
+		if 'available_plot' in fields:
+			plot = json.loads(data['available_plot'])
+
+			# check duplicates based on content
+			exists = any(
+				existing['plot'] == plot
+				for existing in session_dict['plots']['available']
+			)
+
+			if not exists:
+				session_dict['plots']['available'].append({
+					"plot_id": str(uuid.uuid4()),  # convert to string
+					"plot": plot
+				})
+
+		if 'rejected_plot_id' in fields:
+			pid = data['rejected_plot_id']           
+			
+			session_dict['plots']['available'] = [
+				p for p in session_dict['plots']['available']
+				if p['plot_id'] != pid
+			]
+
+		if 'story' in fields:
+			session_dict['generated_drafts'].append({
+				"timestamp": str(int(round(time.time() * 1000))),
+				"plot": {
+					"core_idea": data['core_idea'],
+					"protagonist": data['protagonist'],
+					"conflict": data['conflict'],
+					"stakes": data['stakes'],
+					"direction": data['direction']
+				},
+				"story": data['story'],
+			})
+
 		with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'w') as f:
 			# convert session_dict to json
 			json.dump(session_dict, f)
@@ -74,7 +122,7 @@ def update_session():
 	except Exception as e:
 		print(e)
 		flash("Error creating session", "error")
-	
+
 	return redirect(url_for('view_session', id=sess_id))
 
 
@@ -90,10 +138,20 @@ def create_session():
 		"session_name": data['session_name'],
 		"session_description": data['session_description'],
 		"plots": {
-			"available":[],
-			"used":{},
-			"saved":[]
-		}        
+			"available": [],
+			"used": "",
+			"saved": []
+		},
+		"story_params": {
+			"mainConflict": "",
+			"protagonist": "",
+			"openingScene": "",
+			"wordsToGenerate": "",
+			"storyType": "",
+			"storyPerson": "",
+			"noOfPlots": "",
+		},
+		"generated_drafts": []
 	}
 	create_session_directory()
 	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
@@ -109,23 +167,45 @@ def get_sessions():
 	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
 	sessions = []
 	# sort the sessions by timestamp
-	sess_list=os.listdir(sess_dir)
-	sess_list.sort(key=lambda x: os.path.getmtime(f'{sess_dir}/{x}'), reverse=True)
+	sess_list = os.listdir(sess_dir)
+	sess_list.sort(key=lambda x: os.path.getmtime(
+		f'{sess_dir}/{x}'), reverse=True)
 	for file in sess_list:
 		if file.endswith(".json"):
 			with open(os.path.join(sess_dir, file), 'r') as f:
 				sessions.append(json.load(f))
 	return jsonify({"status": "success", "sessions": sessions})
 
+
 @app.route('/session/<id>', methods=['GET'])
 def view_session(id):
 	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
 	with open(os.path.join(sess_dir, f'session_{id}.json'), 'r') as f:
 		session = json.load(f)
-	return render_template('view_session.html', session=session)
+	plots_from_session = session['plots']
+	plots = {
+		"available": [],
+		"used": {},
+		"saved": []
+	}
 
+	if plots_from_session['available'] != []:
+		for plot in plots_from_session['available']:
+			plots['available'].append(plot)
 
+	if plots_from_session['used'] != "":
+		for plot in plots_from_session['available']:
+			if plot['plot_id'] == plots_from_session['used']:
+				plots['used'] = plot
 
+	if plots_from_session['saved'] != []:
+		for plot in plots_from_session['saved']:
+			plots['saved'].append({
+				"plot_id": plot['plot_id'],
+				"plot": plots_from_session['available'][plot['plot_id']]
+			})
+
+	return render_template('view_session.html', session=session, plots=plots)
 
 
 @app.route('/delete_session', methods=['POST'])
@@ -140,9 +220,6 @@ def delete_session():
 		print(e)
 		return jsonify({"status": "error", "message": str(e)})
 	return jsonify({"status": "success"})
-
-
-
 
 
 @app.route('/save_story', methods=['POST'])
@@ -160,6 +237,13 @@ def save_story():
 		return jsonify({"status": "error", "message": "Failed to save story"})
 	return jsonify({"status": "success"})
 
+@app.route('/get_plots', methods=['GET'])
+def get_plots():
+	sess_id = request.args.get('id')
+	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+	with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
+		session = json.load(f)
+	return jsonify({"status": "success", "plots": session['plots']})
 
 def get_first_line(directory, file):
 	filepath = os.path.join(directory, file)
@@ -225,108 +309,108 @@ def give_data_to_llm():
 	data = request.get_json()
 	if not data:
 		return jsonify({"status": "error", "message": "No data provided"})
-	if data['generate']=="plots":        
-		prompt=f"""
-			You are an expert story architect.
-
-			Task:
-			Generate EXACTLY {data["noOfPlots"]} unique plotlines based on the inputs.
-
-			Each plotline must contain:
-			- core_idea: 3–5 sentences describing the premise
-			- protagonist: who they are
-			- conflict: central struggle
-			- stakes: what is at risk
-			- direction: where the story is heading
-
-			Requirements:
-			- All plotlines must be clearly different
-			- Do not repeat or rephrase ideas
-			- Be imaginative but concise
-			- Fill missing details creatively
-
-			Inputs:
-			Main conflict: {data["mainConflict"]}
-			Protagonist: {data["protagonist"]}
-			Opening scene: {data["openingScene"]}
-			Story Type: {data["storyType"]}
-			Narration Style: {data["storyPerson"]}
-
-			Output:
-			Return ONLY a valid JSON array with EXACTLY {data["noOfPlots"]} objects.
-
-			Schema (STRICT):
-			[
-			{{
-				"title": "Plotline 1",
-				"core_idea": "string",
-				"protagonist": "string",
-				"conflict": "string",
-				"stakes": "string",
-				"direction": "string"
-			}}
-			]
-
-			Field constraints:
-			- All values MUST be plain strings
-			- Do NOT return nested objects or arrays
-			- Do NOT use lists, bullet points, or special formatting inside values
-
-			Critical Rules:
-			- Output ONLY JSON (no text before or after)
-			- Start response with '[' and end with ']'
-			- Use double quotes for all keys and values
-			- Do NOT include trailing commas
-			- Titles MUST be sequential: "Plotline 1", "Plotline 2", ..., "Plotline {data["noOfPlots"]}"
-			- Generate EXACTLY {data["noOfPlots"]} objects (no more, no less)
-			- Do not truncate output
-		"""
-	elif data['generate']=="story":
+	if data['generate'] == "plots":
 		prompt = f"""
-			You are an expert story architect.
+						You are an expert story architect.
 
-			Task:
-			Generate a story STRICTLY based on the provided inputs.
+						Task:
+						Generate EXACTLY {data["noOfPlots"]} unique plotlines based on the inputs.
 
-			Requirements:
-			- You MUST use the exact protagonist name provided
-			- You MUST NOT change character names, locations, or core premise
-			- You MUST NOT introduce unrelated characters unless logically required
-			- You MUST preserve the tone and conflict described
-			- Expand the given idea into a full story without altering its essence
+						Each plotline must contain:
+						- core_idea: 3–5 sentences describing the premise
+						- protagonist: who they are
+						- conflict: central struggle
+						- stakes: what is at risk
+						- direction: where the story is heading
 
-			Inputs:
-			Main conflict: {data["mainConflict"]}
-			Protagonist: {data["protagonist"]}
-			Core idea: {data["core_idea"]}
-			conflict: {data["conflict"]}
-			stakes: {data["stakes"]}
-			direction: {data["direction"]}			
-			Words to Generate: {data["wordsToGenerate"]}
-			Story Type: {data["storyType"]}
-			Narration Style: {data["storyPerson"]}
+						Requirements:
+						- All plotlines must be clearly different
+						- Do not repeat or rephrase ideas
+						- Be imaginative but concise
+						- Fill missing details creatively
 
-			Output:
-			Return ONLY a valid JSON object as per the schema below.
+						Inputs:
+						Main conflict: {data["mainConflict"]}
+						Protagonist: {data["protagonist"]}
+						Opening scene: {data["openingScene"]}
+						Story Type: {data["storyType"]}
+						Narration Style: {data["storyPerson"]}
 
-			Schema (STRICT):
-			{{
-				"story": "string"
-			}}
+						Output:
+						Return ONLY a valid JSON array with EXACTLY {data["noOfPlots"]} objects.
 
-			Field constraints:
-			- All values MUST be plain strings
-			- Do NOT return nested objects or arrays
-			- Do NOT use lists, bullet points, or special formatting inside values
+						Schema (STRICT):
+						[
+						{{
+								"title": "Plotline 1",
+								"core_idea": "string",
+								"protagonist": "string",
+								"conflict": "string",
+								"stakes": "string",
+								"direction": "string"
+						}}
+						]
 
-			Critical Rules:
-			- Output ONLY JSON (no text before or after)
-			- Start response with '{{' and end with '}}'
-			- Use double quotes for all keys and values
-			- Do NOT include trailing commas
-			- Do NOT change input facts (names, places, roles)
-			- Do not truncate output
-		"""
+						Field constraints:
+						- All values MUST be plain strings
+						- Do NOT return nested objects or arrays
+						- Do NOT use lists, bullet points, or special formatting inside values
+
+						Critical Rules:
+						- Output ONLY JSON (no text before or after)
+						- Start response with '[' and end with ']'
+						- Use double quotes for all keys and values
+						- Do NOT include trailing commas
+						- Titles MUST be sequential: "Plotline 1", "Plotline 2", ..., "Plotline {data["noOfPlots"]}"
+						- Generate EXACTLY {data["noOfPlots"]} objects (no more, no less)
+						- Do not truncate output
+				"""
+	elif data['generate'] == "story":
+		prompt = f"""
+						You are an expert story architect.
+
+						Task:
+						Generate an opening story scene STRICTLY based on the provided inputs.
+
+						Requirements:
+						- You MUST use the exact protagonist name provided
+						- You MUST NOT change character names, locations, or core premise
+						- You MUST NOT introduce unrelated characters unless logically required
+						- You MUST preserve the tone and conflict described
+						- Expand the given idea into a full storyline without altering its essence
+
+						Inputs:
+						Main conflict: {data["mainConflict"]}
+						Protagonist: {data["protagonist"]}
+						Core idea: {data["core_idea"]}
+						conflict: {data["conflict"]}
+						stakes: {data["stakes"]}
+						direction: {data["direction"]}			
+						Words to Generate: {data["wordsToGenerate"]}
+						Story Type: {data["storyType"]}
+						Narration Style: {data["storyPerson"]}
+
+						Output:
+						Return ONLY a valid JSON object as per the schema below.
+
+						Schema (STRICT):
+						{{
+								"story": "string"
+						}}
+
+						Field constraints:
+						- All values MUST be plain strings
+						- Do NOT return nested objects or arrays
+						- Do NOT use lists, bullet points, or special formatting inside values
+
+						Critical Rules:
+						- Output ONLY JSON (no text before or after)
+						- Start response with '{{' and end with '}}'
+						- Use double quotes for all keys and values
+						- Do NOT include trailing commas
+						- Do NOT change input facts (names, places, roles)
+						- Do not truncate output
+				"""
 	return llm_prompt(prompt, show_think=True)
 
 
@@ -334,15 +418,15 @@ def give_data_to_llm():
 def continue_with_ai():
 	data = request.get_json()
 	prompt = f"""
-	Story till now: {data["storyTillNow"]}
+		Story till now: {data["storyTillNow"]}
 
-	Your task is to write the next scene of the story.
-	Write a compelling next scene and stay within the scope as defined in the parameters above.
-	If no word limit is defined GENERATE AROUND 300 WORDS ONLY.[THIS IS ESSENTIAL]
+		Your task is to write the next scene of the story.
+		Write a compelling next scene and stay within the scope as defined in the parameters above.
+		If no word limit is defined GENERATE AROUND 300 WORDS ONLY.[THIS IS ESSENTIAL]
 
-	KEEP NOTE OF THE FOLLOWING:-
-	1. NO ABUSIVE LANGUAGE.
-	"""
+		KEEP NOTE OF THE FOLLOWING:-
+		1. NO ABUSIVE LANGUAGE.
+		"""
 	return llm_prompt(prompt, show_think=True)
 
 
@@ -441,4 +525,3 @@ def stop_generation():
 
 if __name__ == '__main__':
 	app.run(debug=True)
-
