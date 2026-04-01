@@ -12,7 +12,7 @@
 
 	:root {
 		--bg-main: #ffeac2;
-		--bg-card: #ffffff;
+		--bg-card: #fffaf1;
 		--bg-accent: #1a1a2e;
 
 		--text-primary: #111827;
@@ -23,7 +23,7 @@
 		--primary: #4f46e5;
 		--primary-hover: #4338ca;
 
-		--selected-bg: #f0f4ff;
+		--selected-bg: #ffecd0;
 		--selected-border: #dbeafe;
 	}
 
@@ -80,6 +80,28 @@
 		top: 20px;
 		align-self: flex-start;
 		color: var(--text-primary);
+		height: 100vh;
+		overflow-y: auto;
+	}
+	/* Scrollbar width */
+	.left-panel::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	/* Track (background) */
+	.left-panel::-webkit-scrollbar-track {
+		background: transparent; /* blends into layout */
+	}
+
+	/* Handle (the draggable part) */
+	.left-panel::-webkit-scrollbar-thumb {
+		background: rgba(60, 60, 60, 0.5); /* subtle */
+		border-radius: 10px;
+	}
+
+	/* Hover effect */
+	.left-panel::-webkit-scrollbar-thumb:hover {
+		background: rgba(255, 255, 255, 0.3);
 	}
 
 	/* ================= TEXT ================= */
@@ -171,23 +193,24 @@
 		border-radius: 8px;
 		border: 1px solid var(--border-light);
 		transition: all 0.2s ease;
-		background: var(--bg-card);
+		background: #fffdf9;
 		color: var(--text-primary);
 	}
 
 	textarea.form-control:focus {
 		border-color: var(--primary);
 		box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
-		background: var(--bg-card);
+		background: #fffdf9;
 		color: var(--text-primary);
 	}
 
 	/* ================= BUTTONS ================= */
 
 	.btn-primary {
-		background: var(--primary);
-		border: none;
-		border-radius: 8px;
+		background: var(--primary);		
+		padding: 4px 10px;
+		font-size: 15px;
+		border-radius: 6px;
 	}
 
 	.btn-primary:hover {
@@ -212,8 +235,8 @@
 
 	/* Selected Plot */
 	#selectedPlot {
-		background: var(--selected-bg);
-		border: 1px solid var(--selected-border);
+		
+		border: 1px solid black;
 		border-radius: 12px;
 	}
 
@@ -232,6 +255,24 @@
 		overflow: auto;
 		background: var(--bg-card);
 		color: var(--text-primary);
+	}
+
+	.text-area#generatedStory {
+		background: #fffdf9;
+	}
+
+	.story-drafts {
+		font-size: 14px;
+	}
+
+	.story-drafts h5 {
+		font-size: 15px;
+		font-weight: 600;
+	}
+
+	.story-drafts > .card > .card-header {
+		padding: 10px 15px;
+		font-weight: bold;
 	}
 
 </style>
@@ -353,11 +394,19 @@
 				<hr>
 				<div class="row">
 					<h4 class="bold">Generated Story</h4>
+					<div class="col-md-12 mb-2">
+						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">Save</button>
+					</div>
 					<div id="storyPlot">
 						<textarea class="form-control text-area text-justify h-500" id="generatedStory"
 							placeholder="Generated Story"></textarea>
 					</div>
 				</div>
+			</div>
+			<div class="bordered">
+				<h3>Drafts</h3>
+				<hr>
+				<div class="story-drafts"></div>
 			</div>
 		</div>		
 	</div>
@@ -376,6 +425,7 @@
 	let useTestData = !true;
 	let plots = [];
 	let plotCounter=0;
+	let storyDrafts = [];
 	const sessionId = "{{ session.session_id }}";
 	const stopButton = document.getElementById("stopBtn");
 	stopButton.style.display = "none";
@@ -398,6 +448,95 @@
 					plotsDiv.appendChild(createPlotDiv(i, plotObj, false));
 				}
 			});
+	}
+
+	function loadStoryDrafts(){
+		storyDrafts = [];
+		console.log("loading story drafts");
+		fetch(`/get_story_drafts?id=${sessionId}`)
+			.then(res => res.json())
+			.then(res => {
+				console.log(res);
+				storyDrafts = res.story_drafts;
+				const storyDraftsDiv = document.querySelector(".story-drafts");
+				storyDraftsDiv.innerHTML = "";
+				for (let i = 0; i < storyDrafts.length; i++) {
+					const storyDraft = storyDrafts[i];
+					storyDrafts[i] = storyDraft;
+					storyDraftsDiv.appendChild(createStoryDraftDiv(i, storyDraft));
+				}
+			});
+	}
+
+	async function saveStoryDraft() {
+		let selectedPlot = document.querySelector("#selectedPlot");
+		let core_idea = selectedPlot.querySelector("#coreIdea").value;
+		let protagonist = selectedPlot.querySelector("#protagonist").value;
+		let conflict = selectedPlot.querySelector("#conflict").value;
+		let stakes = selectedPlot.querySelector("#stakes").value;
+		let direction = selectedPlot.querySelector("#direction").value;
+		let story = storyDiv.value;
+		await fetch('/update_session', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({ 
+				id:sessionId, 
+				story,
+				core_idea,
+				protagonist,
+				conflict,
+				stakes,
+				direction
+			})
+		});
+		await loadStoryDrafts();
+	}
+
+	function createStoryDraftDiv(i, storyDraft) {
+		const div = document.createElement("div");
+		div.classList.add("card");
+		div.classList.add("m-2");
+		div.innerHTML = `
+			<div class="card-header">
+				Story Draft ${i+1}
+			</div>
+			<div class="card-body">
+				<h5>Plot</h5>
+				<p>${storyDraft['plot']['core_idea']}</p>
+				<h5>Protagonist</h5>
+				<p>${storyDraft['plot']['protagonist']}</p>
+				<h5>Conflict</h5>
+				<p>${storyDraft['plot']['conflict']}</p>
+				<h5>Stakes</h5>
+				<p>${storyDraft['plot']['stakes']}</p>
+				<h5>Direction</h5>
+				<p>${storyDraft['plot']['direction']}</p>
+				<h5>Story</h5>
+				<p>${storyDraft['story']}</p>
+				<p>Created: ${storyDraft['timestamp']}</p>
+			</div>
+			<div class="card-footer">
+				<button class="btn btn-primary" onclick="useStoryDraft(${i})">Use Draft</button>
+				<button class="btn btn-danger" data-timestamp="${storyDraft['timestamp']}" onclick="rejectStoryDraft(this)">Delete Draft</button>
+			</div>
+		`;
+		return div;
+	}
+
+	function useStoryDraft(i){
+		console.log("Found storyDrafts:", storyDrafts);
+		alert("Story Draft active");
+		const storyDraft = storyDrafts[i];
+		console.log(storyDraft);
+		const selectedPlot = document.querySelector("#selectedPlot");
+		selectedPlot.querySelector("#coreIdea").value = storyDraft['plot']['core_idea'];
+		selectedPlot.querySelector("#protagonist").value = storyDraft['plot']['protagonist'];
+		selectedPlot.querySelector("#conflict").value = storyDraft['plot']['conflict'];
+		selectedPlot.querySelector("#stakes").value = storyDraft['plot']['stakes'];
+		selectedPlot.querySelector("#direction").value = storyDraft['plot']['direction'];
+		storyDiv.value = storyDraft['story'];
 	}
 
 	function load_values_in_forms() {
@@ -424,6 +563,7 @@
 		//load available plots		
 		//alert(av_plots.length);
 		loadPlots();
+		loadStoryDrafts();
 	}
 	load_values_in_forms();
 	function timeAgo(timestamp) {
@@ -641,12 +781,7 @@
 	};
 
 	populateStory = async function () {
-		let selectedPlot = document.querySelector("#selectedPlot");
-		let core_idea = selectedPlot.querySelector("#coreIdea").value;
-		let protagonist = selectedPlot.querySelector("#protagonist").value;
-		let conflict = selectedPlot.querySelector("#conflict").value;
-		let stakes = selectedPlot.querySelector("#stakes").value;
-		let direction = selectedPlot.querySelector("#direction").value;
+		
 		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
 
 		if (!jsonMatch) {
@@ -669,21 +804,9 @@
 			// 🔥 Render properly
 			storyDiv.value = story.replace(/\\n/g, "<br>");
 
-			fetch('/update_session', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				},
-				body: new URLSearchParams({ 
-					id:sessionId, 
-					story,
-					core_idea,
-					protagonist,
-					conflict,
-					stakes,
-					direction
-				})
-			});			
+			await saveStoryDraft();
+
+			
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
 			console.log("Problematic JSON:", safeJSON);
@@ -872,6 +995,24 @@
 				rejected_plot_id: plotId
 			})
 		});
+	}
+
+	async function rejectStoryDraft(i) {
+		const storyDraftTimestamp = i.dataset.timestamp;
+		// 🔥 remove from UI
+		const card = i.closest(".card");
+		if (card) card.remove();
+		await fetch('/update_session', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				id: sessionId,   // make sure you have this
+				rejected_story_draft_timestamp: storyDraftTimestamp
+			})
+		});
+		await loadStoryDrafts();
 	}
 
 

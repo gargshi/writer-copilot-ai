@@ -101,6 +101,15 @@ def update_session():
 				p for p in session_dict['plots']['available']
 				if p['plot_id'] != pid
 			]
+		
+		if 'rejected_story_draft_timestamp' in fields:
+			did = data['rejected_story_draft_timestamp']
+			print(did)
+			session_dict['generated_drafts'] = [
+				d for d in session_dict['generated_drafts']
+				if d['timestamp'] != did
+			]
+			print(session_dict['generated_drafts'])
 
 		if 'story' in fields:
 			session_dict['generated_drafts'].append({
@@ -244,6 +253,14 @@ def get_plots():
 	with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
 		session = json.load(f)
 	return jsonify({"status": "success", "plots": session['plots']})
+
+@app.route('/get_story_drafts', methods=['GET'])
+def get_story_drafts():
+	sess_id = request.args.get('id')
+	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+	with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
+		session = json.load(f)
+	return jsonify({"status": "success", "story_drafts": session['generated_drafts']})
 
 def get_first_line(directory, file):
 	filepath = os.path.join(directory, file)
