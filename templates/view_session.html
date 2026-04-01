@@ -375,7 +375,7 @@
 					<h5 class=" verdana">Selected Plot</h5>
 					<h6>Core Idea</h6>
 					<textarea class="form-control text-area" id="coreIdea"
-						placeholder="What is the core idea?"></textarea>
+						placeholder="What is the core idea?">${plot.core_idea}</textarea>
 					<h6>Protagonist</h6>
 					<textarea class="form-control text-area" id="protagonist"
 						placeholder="Protagonist">${plot.protagonist}</textarea>
@@ -550,15 +550,26 @@
 		document.getElementById("noOfPlots").value = {{ session.story_params.noOfPlots|tojson }};
 
 		const selectedPlot = document.querySelector("#selectedPlot");
-		selectedPlot.querySelector("#coreIdea").value = {{ plots.used.plot.core_idea|default("")|tojson }};
-		selectedPlot.querySelector("#protagonist").value = {{ plots.used.plot.protagonist|default("")|tojson }};
-		selectedPlot.querySelector("#conflict").value = {{ plots.used.plot.conflict|default("")|tojson }};
-		selectedPlot.querySelector("#stakes").value = {{ plots.used.plot.stakes|default("")|tojson }};
-		selectedPlot.querySelector("#direction").value = {{ plots.used.plot.direction|default("")|tojson }};
+		console.log("dict : ", plots);
+		let usedPlot={{ plots|default({})|tojson }};
+		if (usedPlot && usedPlot.used && usedPlot.used.plot) {
+			selectedPlot.querySelector("#coreIdea").value = usedPlot.used.plot.core_idea;
+			selectedPlot.querySelector("#protagonist").value = usedPlot.used.plot.protagonist;
+			selectedPlot.querySelector("#conflict").value = usedPlot.used.plot.conflict;
+			selectedPlot.querySelector("#stakes").value = usedPlot.used.plot.stakes;
+			selectedPlot.querySelector("#direction").value = usedPlot.used.plot.direction;
+		}
+		else {
+			selectedPlot.querySelector("#coreIdea").value = "";
+			selectedPlot.querySelector("#protagonist").value = "";
+			selectedPlot.querySelector("#conflict").value = "";
+			selectedPlot.querySelector("#stakes").value = "";
+			selectedPlot.querySelector("#direction").value = "";
+		}
 
 		// load story
-		const story = document.querySelector("#generatedStory");
-		story.value = {{ (session.generated_drafts[-1].story if session.generated_drafts and session.generated_drafts|length > 0 else "length is 0") | tojson }};
+		//const story = document.querySelector("#generatedStory");
+		//story.value = {{ (session.generated_drafts[-1].story if session.generated_drafts and session.generated_drafts|length > 0 else "length is 0") | tojson }};
 
 		//load available plots		
 		//alert(av_plots.length);

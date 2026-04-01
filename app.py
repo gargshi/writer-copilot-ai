@@ -101,6 +101,8 @@ def update_session():
 				p for p in session_dict['plots']['available']
 				if p['plot_id'] != pid
 			]
+
+			session_dict['plots']['used'] = "" if session_dict['plots']['used'] == pid else session_dict['plots']['used']
 		
 		if 'rejected_story_draft_timestamp' in fields:
 			did = data['rejected_story_draft_timestamp']
