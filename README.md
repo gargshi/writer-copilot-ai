@@ -45,7 +45,7 @@ Helps you explore different narrative directions before committing.
 ### Plot Selection → Story Generation
 
 * Select a plot you like
-* Generate a full story based on that plot
+* Generate a story opening based on that plot
 * Maintains narrative consistency
 * Designed to reduce randomness and improve coherence
 
@@ -60,7 +60,7 @@ Helps you explore different narrative directions before committing.
 
 ---
 
-### Draft & Session Persistence (_being worked on_)
+### Draft & Session Persistence
 
 * Save sessions locally
 * Store plots and generated stories
