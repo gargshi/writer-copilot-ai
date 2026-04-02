@@ -2,281 +2,43 @@
 {% extends 'base.html' %}
 
 {% block title %}Sessions - Writer Copilot AI{% endblock %}
-
+{% block navbar %}
+	<div class="dock-item" onclick="window.location.href='/'" title="Home">
+		<i class="bi bi-house"></i>
+		Home
+	</div>
+	<div class="dock-separator"></div>
+	<div class="dock-item" onclick="scrollToSection('plots-section')" title="Plots">
+		<i class="bi bi-house"></i>
+		Plots 
+	</div>
+	<div class="dock-item" onclick="scrollToSection('story-section')" title="Story">
+		<i class="bi bi-book"></i>
+		Story
+	</div>
+	<div class="dock-item" onclick="scrollToSection('drafts-section')" title="Drafts">
+		<i class="bi bi-archive"></i>
+		Drafts
+	</div>
+	<div class="dock-separator"></div>
+	<div class="dock-item" onclick="window.location.href='/'" title="Back">
+		<i class="bi bi-arrow-left-circle"></i>
+		Back
+	</div>	
+{% endblock %}
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-	integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 <style>
-
-	/* ================= THEME VARIABLES ================= */
-
-	:root {
-		--bg-main: #ffeac2;
-		--bg-card: #fffaf1;
-		--bg-accent: #1a1a2e;
-
-		--text-primary: #111827;
-		--text-secondary: #6b7280;
-
-		--border-light: #e5e7eb;
-
-		--primary: #4f46e5;
-		--primary-hover: #4338ca;
-
-		--selected-bg: #ffecd0;
-		--selected-border: #dbeafe;
-	}
-
-	/* 🌙 Dark Theme */
-	[data-theme="dark"] {
-		--bg-main: #1f283b;        /* deep base */
-		--bg-card: #111827;        /* main surface */
-		--bg-elevated: #1f2937;    /* slightly raised (important!) */
-		--bg-accent: #1e293b;      /* accordion open */
-
-		--text-primary: #e5e7eb;
-		--text-secondary: #9ca3af;
-
-		--border-light: #374151;
-
-		--primary: #6366f1;
-		--primary-hover: #4f46e5;
-
-		--selected-bg: #1e293b;
-		--selected-border: #3b82f6;
-	}
-
-	/* ================= BASE ================= */
-
-	body {
-		background: var(--bg-main);
-		font-family: Arial, sans-serif;
-		color: var(--text-primary);
-	}
-
-	.row{
-		margin-top: 20px;
-	}
-
-	/* ================= LAYOUT ================= */
-
-	.bordered {
-		background: var(--bg-card);
-		border-radius: 12px;
-		padding: 16px;
-		margin-bottom: 16px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-	}
-
-	.form-group {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		padding: 10px;
-	}
-
-	.left-panel {
+	.section-nav-wrapper {
 		position: sticky;
-		top: 20px;
-		align-self: flex-start;
-		color: var(--text-primary);
-		height: 100vh;
-		overflow-y: auto;
-	}
-	/* Scrollbar width */
-	.left-panel::-webkit-scrollbar {
-		width: 8px;
-	}
+		top: 0; /* or 10px if you want spacing */
+		z-index: 20;
 
-	/* Track (background) */
-	.left-panel::-webkit-scrollbar-track {
-		background: transparent; /* blends into layout */
-	}
-
-	/* Handle (the draggable part) */
-	.left-panel::-webkit-scrollbar-thumb {
-		background: rgba(60, 60, 60, 0.5); /* subtle */
-		border-radius: 10px;
-	}
-
-	/* Hover effect */
-	.left-panel::-webkit-scrollbar-thumb:hover {
-		background: rgba(255, 255, 255, 0.3);
-	}
-
-	/* ================= TEXT ================= */
-
-	.text-area {
-		height: 100px;
-		font-size: 14px;
-	}
-
-	.text-justify {
-		text-align: justify;
-	}
-
-	.h-500 {
-		height: 500px;
-	}
-
-	.form-control,
-	label,
-	.plot,
-	.genplotbtn,
-	.desc {
-		font-size: 14px;
-	}
-
-	.text-small {
-		font-size: 12px;
-		color: var(--text-secondary);
-	}
-
-	.bold {
-		font-weight: bold;
-	}
-
-	/* ================= ACCORDION ================= */
-
-	.accordion-item {
-		border: none;
-		border-radius: 10px;
-		overflow: hidden;
-		margin-bottom: 10px;
-	}
-
-	.accordion-button {
-		padding: 10px 15px;
-		font-size: 14px;
-		font-weight: 500;
-		transition: all 0.2s ease;
-	}
-
-	/* Open */
-	.accordion-button:not(.collapsed) {
-		background: var(--bg-accent);
-		color: #fff;
-	}
-
-	/* Closed */
-	.accordion-button.collapsed {
-		background: var(--bg-card);
-		color: var(--text-primary);
-	}
-
-	/* Hover */
-	.accordion-button:hover {
-		background: rgb(61, 61, 61);
-		color: #fff;
-		font-weight: bolder;		
-		transform: translateX(5px);
-		transition: all 0.4s ease;
-	}
-
-	/* Arrow */
-	.accordion-button:not(.collapsed)::after {
-		filter: invert(1);		
-	}
-
-	.accordion-button.collapsed::after {
-		filter: none;
-	}
-
-	.accordion-body {
-		background: var(--bg-card);
-		color: var(--text-primary);
-	}
-
-	/* ================= INPUTS ================= */
-
-	textarea.form-control {
-		border-radius: 8px;
-		border: 1px solid var(--border-light);
-		transition: all 0.2s ease;
-		background: #fffdf9;
-		color: var(--text-primary);
-	}
-
-	textarea.form-control:focus {
-		border-color: var(--primary);
-		box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
-		background: #fffdf9;
-		color: var(--text-primary);
-	}
-
-	/* ================= BUTTONS ================= */
-
-	.btn-primary {
-		background: var(--primary);		
-		padding: 4px 10px;
-		font-size: 15px;
-		border-radius: 6px;
-	}
-
-	.btn-primary:hover {
-		background: var(--primary-hover);
-	}
-
-	.btn-success,
-	.btn-danger {
-		border-radius: 8px;
-	}
-
-	/* ================= SECTIONS ================= */
-
-	h4.bold {
-		font-size: 18px;
-		margin-bottom: 10px;
-	}
-
-	h5 {
-		margin-bottom: 10px;
-	}
-
-	/* Selected Plot */
-	#selectedPlot {
 		
-		border: 1px solid black;
-		border-radius: 12px;
-	}
+		backdrop-filter: blur(8px);
 
-	/* Story Output */
-	#generatedStory {
-		line-height: 1.6;
-		font-size: 15px;
-		background: var(--bg-card);
-		color: var(--text-primary);
+		padding: 10px 0;
 	}
-
-	/* AI Output */
-	#aiOutput {
-		font-size: 14px;
-		height: 500px;
-		overflow: auto;
-		background: var(--bg-card);
-		color: var(--text-primary);
-	}
-
-	.text-area#generatedStory {
-		background: #fffdf9;
-	}
-
-	.story-drafts {
-		font-size: 14px;
-	}
-
-	.story-drafts h5 {
-		font-size: 15px;
-		font-weight: 600;
-	}
-
-	.story-drafts > .card > .card-header {
-		padding: 10px 15px;
-		font-weight: bold;
-	}
-
 </style>
-
 <div class="container">
 	<div class="row">
 		<div class="col-md-4 left-panel">
@@ -288,6 +50,13 @@
 				<p class="text-small" id="created">{{ session.timestamp }}</p>
 				<p class="text-small" id="sessionid">{{ session.session_id }}</p>
 				<a class="btn btn-primary" href="{{ url_for('sessions') }}">Back</a>
+				<div class="section-nav-wrapper">
+					<div class="section-nav">
+						<button class="nav-btn" onclick="scrollToSection('plots-section')">Plots</button>
+						<button class="nav-btn" onclick="scrollToSection('story-section')">Story</button>
+						<button class="nav-btn" onclick="scrollToSection('drafts-section')">Drafts</button>
+					</div>
+				</div>
 			</div>
 			<div class="bordered">
 				<div class="accordion" id="leftAccordion">
@@ -362,15 +131,18 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-8">
-			<div class="bordered">
-				<h4 class="bold">Plots</h4>
+		<div class="col-md-8 right-panel">
+			
+			<div class="bordered right-panel-section" id="plots-section">
+				<h4>Plots</h4>
 				<hr>
 				<div id="status"></div>
 				<!-- <div id="plots"></div> -->
 				<div class="accordion" id="plots"></div>
 			</div>
-			<div class="bordered">
+			<div class="bordered" id="story-section">
+				<h4>Story</h4>
+				<hr>
 				<div class="form-group gap-10" id="selectedPlot">
 					<h5 class=" verdana">Selected Plot</h5>
 					<h6>Core Idea</h6>
@@ -391,20 +163,20 @@
 					<button class="btn btn-primary genstorybtn"
 					onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
 				</div>
-				<hr>
-				<div class="row">
-					<h4 class="bold">Generated Story</h4>
+				
+				<div class="row gen-story-panel">
+					<h4>Generated Story</h4>
+					<div id="storyPlot">
+						<textarea class="form-control text-area text-justify h-500" id="generatedStory"
+						placeholder="Generated Story"></textarea>
+					</div>
 					<div class="col-md-12 mb-2">
 						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">Save</button>
 					</div>
-					<div id="storyPlot">
-						<textarea class="form-control text-area text-justify h-500" id="generatedStory"
-							placeholder="Generated Story"></textarea>
-					</div>
 				</div>
 			</div>
-			<div class="bordered">
-				<h3>Drafts</h3>
+			<div class="bordered right-panel-section" id="drafts-section">
+				<h4>Drafts</h4>
 				<hr>
 				<div class="story-drafts"></div>
 			</div>
@@ -415,6 +187,15 @@
 {% endblock %}
 {% block scripts %}
 <script>
+	function scrollToSection(id) {
+	const el = document.getElementById(id);
+	if (el) {
+			el.scrollIntoView({
+				behavior: "smooth",
+				block: "start"
+			});
+		}
+	}
 	const ts_elem = document.getElementById('created');
 	let av_plots = {{ plots.available | default([]) | tojson }};
 	console.log(av_plots);
@@ -513,7 +294,7 @@
 				<p>${storyDraft['plot']['stakes']}</p>
 				<h5>Direction</h5>
 				<p>${storyDraft['plot']['direction']}</p>
-				<h5>Story</h5>
+				<h5>Story Opening</h5>
 				<p>${storyDraft['story']}</p>
 				<p>Created: ${storyDraft['timestamp']}</p>
 			</div>
@@ -567,12 +348,6 @@
 			selectedPlot.querySelector("#direction").value = "";
 		}
 
-		// load story
-		//const story = document.querySelector("#generatedStory");
-		//story.value = {{ (session.generated_drafts[-1].story if session.generated_drafts and session.generated_drafts|length > 0 else "length is 0") | tojson }};
-
-		//load available plots		
-		//alert(av_plots.length);
 		loadPlots();
 		loadStoryDrafts();
 	}
@@ -876,28 +651,7 @@
 			}
 		}
 
-		loadPlots();
-		/*const promises = plots.map(plot => {
-			return fetch('/update_session', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams({
-					id: sessionId,
-					available_plot: JSON.stringify(plot)
-				})
-			})
-			.then(res => res.json())
-			.catch(err => {
-				console.error("Failed to update session:", err);
-			});
-		});
-
-		await Promise.all(promises);
-
-		loadPlots();*/
-		
+		loadPlots();		
 	};
 
 	function createPlotDiv(i,plot, makeEditable = true) {
@@ -906,7 +660,7 @@
 		plotDiv.classList.add("plot");
 		plotDiv.classList.add("accordion-item");
 		plotDiv.innerHTML = `				
-			<div class="accordion-header">
+			<div class="accordion-header rounded">
 				<button class="accordion-button collapsed" type="button"
 					data-bs-toggle="collapse"
 					data-bs-target="#collapse-${i}"
@@ -916,7 +670,7 @@
 			</div>
 
 			<div id="collapse-${i}" class="accordion-collapse collapse">
-				<div class="accordion-body">
+				<div class="accordion-body rounded">
 					<div class="row g-3">
 						<div class="col-md-12">
 							<h6 class="">Core Idea</h6>
@@ -1062,24 +816,6 @@
 		stopButton.style.display = "none";
 	};
 
-	function toggleTheme() {
-		const current = document.documentElement.getAttribute("data-theme");
-
-		if (current === "dark") {
-			document.documentElement.removeAttribute("data-theme");
-			localStorage.setItem("theme", "light");
-		} else {
-			document.documentElement.setAttribute("data-theme", "dark");
-			localStorage.setItem("theme", "dark");
-		}
-	}
-
-	// Load saved theme on page load
-	(function () {
-		const saved = localStorage.getItem("theme");
-		if (saved === "dark") {
-			document.documentElement.setAttribute("data-theme", "dark");
-		}
-	})();
+	
 </script>
 {% endblock %}

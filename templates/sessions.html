@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
-<style>
+<!-- <style>
   body {
     background-color: #f2f2f7;
     /* iOS system background */
@@ -15,7 +15,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-</style>
+</style> -->
+
 
 <div class="container">
 
@@ -113,15 +114,15 @@
 
                   <h5 class="card-title">${session.session_name}</h5>
 
-                  <p class="card-text text-muted flex-grow-1">
+                  <p class="card-text flex-grow-1">
                     ${session.session_description.slice(0, 50) + (session.session_description.length > 50 ? '...' : '') || 'No description'}
                   </p>
 
-                  <small class="text-muted">
+                  <small class="card-text">
                     Created: ${session.timestamp}
                   </small>
 
-                  <small class="text-muted d-block mb-2">
+                  <small class=" d-block mb-2">
                     ID: ${session.session_id}
                   </small>
 
