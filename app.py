@@ -264,63 +264,63 @@ def get_story_drafts():
 		session = json.load(f)
 	return jsonify({"status": "success", "story_drafts": session['generated_drafts']})
 
-def get_first_line(directory, file):
-	filepath = os.path.join(directory, file)
-	with open(filepath) as f:
-		first_line = f.readline()
-	return first_line
+# def get_first_line(directory, file):
+# 	filepath = os.path.join(directory, file)
+# 	with open(filepath) as f:
+# 		first_line = f.readline()
+# 	return first_line
 
 
-@app.route('/get_drafts', methods=['GET'])
-def get_drafts():
-	directory = os.getenv("DRAFT_FOLDER_NAME")
-	drafts = []
-	if not os.path.exists(directory):
-		return jsonify({"status": "error", "message": "No drafts found"})
-	for file in os.listdir(directory):
-		if file.endswith(".txt"):
-			drafts.append({
-				"name": file,
-				"content-short": get_first_line(directory, file),
-				"modified-at": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(f'{directory}/{file}'))),
-				"m-timestamp": os.path.getmtime(f'{directory}/{file}')
-			})
-			# sort the drafts by modified time
-			drafts.sort(key=lambda x: x["m-timestamp"], reverse=True)
-	return jsonify({"status": "success", "drafts": drafts})
+# @app.route('/get_drafts', methods=['GET'])
+# def get_drafts():
+# 	directory = os.getenv("DRAFT_FOLDER_NAME")
+# 	drafts = []
+# 	if not os.path.exists(directory):
+# 		return jsonify({"status": "error", "message": "No drafts found"})
+# 	for file in os.listdir(directory):
+# 		if file.endswith(".txt"):
+# 			drafts.append({
+# 				"name": file,
+# 				"content-short": get_first_line(directory, file),
+# 				"modified-at": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(f'{directory}/{file}'))),
+# 				"m-timestamp": os.path.getmtime(f'{directory}/{file}')
+# 			})
+# 			# sort the drafts by modified time
+# 			drafts.sort(key=lambda x: x["m-timestamp"], reverse=True)
+# 	return jsonify({"status": "success", "drafts": drafts})
 
 
-@app.route('/get_story', methods=['POST'])
-def get_story():
-	data = request.get_json()
-	# story_name = data['story_name']
-	# directory = os.getenv("DRAFT_FOLDER_NAME")
-	# story = open(f'{directory}/{story_name}').read()
-	story_name = secure_filename(data['story_name'])
-	directory = os.getenv("DRAFT_FOLDER_NAME")
-	filepath = os.path.join(directory, story_name)
-	with open(filepath) as f:
-		story = f.read()
-	return jsonify({"status": "success", "story": story})
+# @app.route('/get_story', methods=['POST'])
+# def get_story():
+# 	data = request.get_json()
+# 	# story_name = data['story_name']
+# 	# directory = os.getenv("DRAFT_FOLDER_NAME")
+# 	# story = open(f'{directory}/{story_name}').read()
+# 	story_name = secure_filename(data['story_name'])
+# 	directory = os.getenv("DRAFT_FOLDER_NAME")
+# 	filepath = os.path.join(directory, story_name)
+# 	with open(filepath) as f:
+# 		story = f.read()
+# 	return jsonify({"status": "success", "story": story})
 
 
-@app.route('/delete_draft/<draft_name>', methods=['DELETE'])
-def delete_draft(draft_name):
-	directory = os.getenv("DRAFT_FOLDER_NAME")
-	try:
-		# os.remove(f'{directory}/{draft_name}')
-		safe_name = secure_filename(draft_name)
-		filepath = os.path.join(directory, safe_name)
-		os.remove(filepath)
-		return jsonify({"status": "success"})
-	except OSError as e:
-		return jsonify({"status": "error", "message": str(e)})
+# @app.route('/delete_draft/<draft_name>', methods=['DELETE'])
+# def delete_draft(draft_name):
+# 	directory = os.getenv("DRAFT_FOLDER_NAME")
+# 	try:
+# 		# os.remove(f'{directory}/{draft_name}')
+# 		safe_name = secure_filename(draft_name)
+# 		filepath = os.path.join(directory, safe_name)
+# 		os.remove(filepath)
+# 		return jsonify({"status": "success"})
+# 	except OSError as e:
+# 		return jsonify({"status": "error", "message": str(e)})
 
 
-def create_draft_directory(dir):
-	print("directory", dir)
-	if not os.path.exists(dir):
-		os.makedirs(dir)
+# def create_draft_directory(dir):
+# 	print("directory", dir)
+# 	if not os.path.exists(dir):
+# 		os.makedirs(dir)
 
 
 @app.route('/send_data_to_llm', methods=['POST'])
@@ -471,7 +471,7 @@ def llm_prompt(prompt, show_think=False):
 
 				for chunk in stream:
 
-					# 🔥 STOP CHECK
+					# STOP CHECK
 					if active_generations.get(request_id):
 						print("⛔ Backend stopped generation")
 						stream.close()
@@ -498,7 +498,7 @@ def llm_prompt(prompt, show_think=False):
 
 					buffer += text
 
-					# 🔥 Detect THINK blocks
+					# Detect THINK blocks
 					while True:
 						if not inside_think:
 							start = buffer.find("[THINK]")
@@ -523,7 +523,7 @@ def llm_prompt(prompt, show_think=False):
 			# cleanup
 			active_generations.pop(request_id, None)
 
-	response = Response(generate(show_think=True), content_type="text/plain")
+	response = Response(generate(show_think=show_think), content_type="text/plain")
 	response.headers["X-Request-ID"] = request_id
 
 	return response

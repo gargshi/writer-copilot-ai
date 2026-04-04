@@ -36,9 +36,9 @@
 
 	/* Select styling */
 	.format-tools select {
-		appearance: none;
 		-webkit-appearance: none;
 		-moz-appearance: none;
+		appearance: none;
 		background: var(--bg-card);
 		color: var(--text-primary);
 		border: var(--border-light);
@@ -73,7 +73,7 @@
 
 				<p class="text-small" id="created">{{ session.timestamp }}</p>
 				<p class="text-small" id="sessionid">{{ session.session_id }}</p>
-				<a class="btn btn-primary" href="{{ url_for('sessions') }}">Back</a>				
+				<a class="btn btn-primary" href="{{ url_for('sessions') }}"><i class="bi bi-arrow-left"></i> Back</a>				
 			</div>
 			<div class="p-0">
 				<div class="accordion" id="leftAccordion">
@@ -146,6 +146,11 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="settings mt-4 p-3 bordered">
+				<h4>Quick Settings</h4>
+				<hr>
+				<button class="btn btn-primary" onclick="resetDockPosition()">Reset Dock</button>
 			</div>
 		</div>
 		<div class="col-md-8 right-panel">
@@ -348,7 +353,7 @@
 
 	function useStoryDraft(i){
 		console.log("Found storyDrafts:", storyDrafts);
-		alert("Story Draft active");
+		//alert("Story Draft active");
 		const storyDraft = storyDrafts[i];
 		console.log(storyDraft);
 		const selectedPlot = document.querySelector("#selectedPlot");
