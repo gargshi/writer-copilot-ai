@@ -3,10 +3,6 @@
 
 {% block title %}Sessions - Writer Copilot AI{% endblock %}
 {% block navbar %}
-	<div class="dock-item" onclick="window.location.href='/'" title="Home">
-		<i class="bi bi-house"></i>
-		Home
-	</div>
 	<div class="dock-separator"></div>
 	<div class="dock-item" onclick="scrollToSection('plots-section')" title="Plots">
 		<i class="bi bi-house"></i>
@@ -20,24 +16,52 @@
 		<i class="bi bi-archive"></i>
 		Drafts
 	</div>
-	<div class="dock-separator"></div>
-	<div class="dock-item" onclick="window.location.href='/'" title="Back">
-		<i class="bi bi-arrow-left-circle"></i>
-		Back
-	</div>	
+	<div class="dock-separator"></div>	
 {% endblock %}
 {% block content %}
 <style>
-	.section-nav-wrapper {
-		position: sticky;
-		top: 0; /* or 10px if you want spacing */
-		z-index: 20;
-
-		
-		backdrop-filter: blur(8px);
-
-		padding: 10px 0;
+	.format-tools {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;				
 	}
+
+	/* Labels */
+	.format-tools label {
+		font-size: 13px;
+		color: var(--text-secondary);
+		margin-top:0;
+	}
+
+	/* Select styling */
+	.format-tools select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		background: var(--bg-card);
+		color: var(--text-primary);
+		border: var(--border-light);
+		border-radius: 8px;
+		padding: 6px 30px 6px 10px;
+		font-size: 14px;		
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	/* Focus */
+	.format-tools select:focus {
+		border-color: var(--border-light);
+		box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.2);
+	}
+
+	/* Custom dropdown arrow */
+	.format-tools select {
+		background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5 7l5 5 5-5z'/></svg>");
+		background-repeat: no-repeat;
+		background-position: right 8px center;
+		background-size: 20px;		
+	}	
 </style>
 <div class="container">
 	<div class="row">
@@ -49,16 +73,9 @@
 
 				<p class="text-small" id="created">{{ session.timestamp }}</p>
 				<p class="text-small" id="sessionid">{{ session.session_id }}</p>
-				<a class="btn btn-primary" href="{{ url_for('sessions') }}">Back</a>
-				<div class="section-nav-wrapper">
-					<div class="section-nav">
-						<button class="nav-btn" onclick="scrollToSection('plots-section')">Plots</button>
-						<button class="nav-btn" onclick="scrollToSection('story-section')">Story</button>
-						<button class="nav-btn" onclick="scrollToSection('drafts-section')">Drafts</button>
-					</div>
-				</div>
+				<a class="btn btn-primary" href="{{ url_for('sessions') }}">Back</a>				
 			</div>
-			<div class="bordered">
+			<div class="p-0">
 				<div class="accordion" id="leftAccordion">
 					<div class="accordion-item">
 						<h2 class="accordion-header">
@@ -133,7 +150,7 @@
 		</div>
 		<div class="col-md-8 right-panel">
 			
-			<div class="bordered right-panel-section" id="plots-section">
+			<div class="bordered" id="plots-section">
 				<h4>Plots</h4>
 				<hr>
 				<div id="status"></div>
@@ -145,19 +162,19 @@
 				<hr>
 				<div class="form-group gap-10" id="selectedPlot">
 					<h5 class=" verdana">Selected Plot</h5>
-					<h6>Core Idea</h6>
+					<label>Core Idea</label>
 					<textarea class="form-control text-area" id="coreIdea"
 						placeholder="What is the core idea?">${plot.core_idea}</textarea>
-					<h6>Protagonist</h6>
+					<label>Protagonist</label>
 					<textarea class="form-control text-area" id="protagonist"
 						placeholder="Protagonist">${plot.protagonist}</textarea>
-					<h6>Conflict</h6>
+					<label>Conflict</label>
 					<textarea class="form-control text-area" id="conflict"
 						placeholder="Conflict">${plot.conflict}</textarea>
-					<h6>Stakes</h6>
+					<label>Stakes</label>
 					<textarea class="form-control text-area" id="stakes"
 						placeholder="Stakes">${plot.stakes}</textarea>
-					<h6>Direction</h6>
+					<label>Direction</label>
 					<textarea class="form-control text-area" id="direction"
 						placeholder="Direction">${plot.direction}</textarea>
 					<button class="btn btn-primary genstorybtn"
@@ -166,6 +183,24 @@
 				
 				<div class="row gen-story-panel">
 					<h4>Generated Story</h4>
+					<div class="format-tools">
+						<label for="font">Font</label>
+						<select id="font" name="font" class="form-control">
+							<option value="Arial">Arial</option>
+							<option value="Courier">Courier</option>
+							<option value="Georgia">Georgia</option>
+						</select>
+						<label for="fontSize">Size</label>
+						<select id="fontSize" name="fontSize" class="form-control">
+							<option value="10">10</option>
+							<option value="12" default>12</option>
+							<option value="14">14</option>
+							<option value="16">16</option>
+							<option value="18">18</option>
+							<option value="20">20</option>
+						</select>
+						<button class="btn btn-primary" id="clearStory">Clear</button>
+					</div>
 					<div id="storyPlot">
 						<textarea class="form-control text-area text-justify h-500" id="generatedStory"
 						placeholder="Generated Story"></textarea>
@@ -175,7 +210,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="bordered right-panel-section" id="drafts-section">
+			<div class="bordered" id="drafts-section">
 				<h4>Drafts</h4>
 				<hr>
 				<div class="story-drafts"></div>
@@ -231,10 +266,10 @@
 			});
 	}
 
-	function loadStoryDrafts(){
+	async function loadStoryDrafts(last=false) {
 		storyDrafts = [];
 		console.log("loading story drafts");
-		fetch(`/get_story_drafts?id=${sessionId}`)
+		await fetch(`/get_story_drafts?id=${sessionId}`)
 			.then(res => res.json())
 			.then(res => {
 				console.log(res);
@@ -247,6 +282,10 @@
 					storyDraftsDiv.appendChild(createStoryDraftDiv(i, storyDraft));
 				}
 			});
+		
+		if (last && storyDrafts.length > 0) {
+			useStoryDraft(storyDrafts.length-1);
+		}
 	}
 
 	async function saveStoryDraft() {
@@ -257,6 +296,7 @@
 		let stakes = selectedPlot.querySelector("#stakes").value;
 		let direction = selectedPlot.querySelector("#direction").value;
 		let story = storyDiv.value;
+		console.log("story div value :", story);
 		await fetch('/update_session', {
 			method: 'POST',
 			headers: {
@@ -281,20 +321,20 @@
 		div.classList.add("m-2");
 		div.innerHTML = `
 			<div class="card-header">
-				Story Draft ${i+1}
+				 ${i+1}
 			</div>
 			<div class="card-body">
-				<h5>Plot</h5>
+				<label>Plot</label>
 				<p>${storyDraft['plot']['core_idea']}</p>
-				<h5>Protagonist</h5>
+				<label>Protagonist</label>
 				<p>${storyDraft['plot']['protagonist']}</p>
-				<h5>Conflict</h5>
+				<label>Conflict</label>
 				<p>${storyDraft['plot']['conflict']}</p>
-				<h5>Stakes</h5>
+				<label>Stakes</label>
 				<p>${storyDraft['plot']['stakes']}</p>
-				<h5>Direction</h5>
+				<label>Direction</label>
 				<p>${storyDraft['plot']['direction']}</p>
-				<h5>Story Opening</h5>
+				<label>Story Opening</label>
 				<p>${storyDraft['story']}</p>
 				<p>Created: ${storyDraft['timestamp']}</p>
 			</div>
@@ -349,7 +389,7 @@
 		}
 
 		loadPlots();
-		loadStoryDrafts();
+		loadStoryDrafts(last=true);
 	}
 	load_values_in_forms();
 	function timeAgo(timestamp) {
@@ -815,6 +855,45 @@
 		aiOutput.innerHTML = "";
 		stopButton.style.display = "none";
 	};
+
+	const fontSelect = document.getElementById("font");
+	const fontSizeSelect = document.getElementById("fontSize");
+	const textarea = document.getElementById("generatedStory");
+	const clearButton = document.getElementById("clearStory");
+
+	// Apply styles when font changes
+	fontSelect.addEventListener("change", () => {
+		textarea.style.fontFamily = fontSelect.value;
+		localStorage.setItem("font", fontSelect.value);
+	});
+
+	// Apply styles when font size changes
+	fontSizeSelect.addEventListener("change", () => {
+		textarea.style.fontSize = fontSizeSelect.value + "px";
+		localStorage.setItem("fontSize", fontSizeSelect.value);
+	});
+
+	// Optional: set default on load
+	window.addEventListener("DOMContentLoaded", () => {
+		textarea.style.fontFamily = fontSelect.value;
+		textarea.style.fontSize = fontSizeSelect.value + "px";
+		const storedFont = window.localStorage.getItem("font");
+		const storedFontSize = window.localStorage.getItem("fontSize");		
+		if (storedFont) {
+			fontSelect.value = storedFont;
+			textarea.style.fontFamily = storedFont;
+		}
+		if (storedFontSize) {
+			fontSizeSelect.value = storedFontSize;
+			textarea.style.fontSize = storedFontSize + "px";
+		}
+	});
+
+	clearButton.addEventListener("click", () => {
+		textarea.value = "";
+	});
+
+
 
 	
 </script>
