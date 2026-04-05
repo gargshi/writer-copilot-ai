@@ -171,19 +171,19 @@
 				<div class="form-group gap-10" id="selectedPlot">
 					<h5 class=" verdana">Selected Plot</h5>
 					<label>Core Idea</label>
-					<textarea class="form-control text-area" id="coreIdea"
+					<textarea class="form-control text-area" id="sel_coreIdea"
 						placeholder="What is the core idea?">${plot.core_idea}</textarea>
 					<label>Protagonist</label>
-					<textarea class="form-control text-area" id="protagonist"
+					<textarea class="form-control text-area" id="sel_protagonist"
 						placeholder="Protagonist">${plot.protagonist}</textarea>
 					<label>Conflict</label>
-					<textarea class="form-control text-area" id="conflict"
+					<textarea class="form-control text-area" id="sel_conflict"
 						placeholder="Conflict">${plot.conflict}</textarea>
 					<label>Stakes</label>
-					<textarea class="form-control text-area" id="stakes"
+					<textarea class="form-control text-area" id="sel_stakes"
 						placeholder="Stakes">${plot.stakes}</textarea>
 					<label>Direction</label>
-					<textarea class="form-control text-area" id="direction"
+					<textarea class="form-control text-area" id="sel_direction"
 						placeholder="Direction">${plot.direction}</textarea>
 					<button class="btn btn-primary genstorybtn"
 					onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
@@ -331,11 +331,11 @@
 
 	async function saveStoryDraft() {
 		let selectedPlot = document.querySelector("#selectedPlot");
-		let core_idea = selectedPlot.querySelector("#coreIdea").value;
-		let protagonist = selectedPlot.querySelector("#protagonist").value;
-		let conflict = selectedPlot.querySelector("#conflict").value;
-		let stakes = selectedPlot.querySelector("#stakes").value;
-		let direction = selectedPlot.querySelector("#direction").value;
+		let core_idea = selectedPlot.querySelector("#sel_coreIdea").value;
+		let protagonist = selectedPlot.querySelector("#sel_protagonist").value;
+		let conflict = selectedPlot.querySelector("#sel_conflict").value;
+		let stakes = selectedPlot.querySelector("#sel_stakes").value;
+		let direction = selectedPlot.querySelector("#sel_direction").value;
 		let story = storyDiv.value;
 		console.log("story div value :", story);
 		await fetch('/update_session', {
@@ -394,11 +394,11 @@
 		const storyDraft = storyDrafts[i];
 		console.log(storyDraft);
 		const selectedPlot = document.querySelector("#selectedPlot");
-		selectedPlot.querySelector("#coreIdea").value = storyDraft['plot']['core_idea'];
-		selectedPlot.querySelector("#protagonist").value = storyDraft['plot']['protagonist'];
-		selectedPlot.querySelector("#conflict").value = storyDraft['plot']['conflict'];
-		selectedPlot.querySelector("#stakes").value = storyDraft['plot']['stakes'];
-		selectedPlot.querySelector("#direction").value = storyDraft['plot']['direction'];
+		selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
+		selectedPlot.querySelector("#sel_protagonist").value = storyDraft['plot']['protagonist'];
+		selectedPlot.querySelector("#sel_conflict").value = storyDraft['plot']['conflict'];
+		selectedPlot.querySelector("#sel_stakes").value = storyDraft['plot']['stakes'];
+		selectedPlot.querySelector("#sel_direction").value = storyDraft['plot']['direction'];
 		storyDiv.value = storyDraft['story'];
 	}
 
@@ -416,18 +416,18 @@
 		console.log("dict : ", plots);
 		let usedPlot={{ plots|default({})|tojson }};
 		if (usedPlot && usedPlot.used && usedPlot.used.plot) {
-			selectedPlot.querySelector("#coreIdea").value = usedPlot.used.plot.core_idea;
-			selectedPlot.querySelector("#protagonist").value = usedPlot.used.plot.protagonist;
-			selectedPlot.querySelector("#conflict").value = usedPlot.used.plot.conflict;
-			selectedPlot.querySelector("#stakes").value = usedPlot.used.plot.stakes;
-			selectedPlot.querySelector("#direction").value = usedPlot.used.plot.direction;
+			selectedPlot.querySelector("#sel_coreIdea").value = usedPlot.used.plot.core_idea;
+			selectedPlot.querySelector("#sel_protagonist").value = usedPlot.used.plot.protagonist;
+			selectedPlot.querySelector("#sel_conflict").value = usedPlot.used.plot.conflict;
+			selectedPlot.querySelector("#sel_stakes").value = usedPlot.used.plot.stakes;
+			selectedPlot.querySelector("#sel_direction").value = usedPlot.used.plot.direction;
 		}
 		else {
-			selectedPlot.querySelector("#coreIdea").value = "";
-			selectedPlot.querySelector("#protagonist").value = "";
-			selectedPlot.querySelector("#conflict").value = "";
-			selectedPlot.querySelector("#stakes").value = "";
-			selectedPlot.querySelector("#direction").value = "";
+			selectedPlot.querySelector("#sel_coreIdea").value = "";
+			selectedPlot.querySelector("#sel_protagonist").value = "";
+			selectedPlot.querySelector("#sel_conflict").value = "";
+			selectedPlot.querySelector("#sel_stakes").value = "";
+			selectedPlot.querySelector("#sel_direction").value = "";
 		}
 
 		loadPlots();
@@ -523,18 +523,15 @@
 			});
 			console.log(response1);		
 		}
-
 		
 
-		success=false;
-		maxRetries = 10;
-		retry=0;
+		let success=false;
+		let maxRetries = 10;
+		let retry=0;
 
 		openAIOutput();
 
 		while(!success && retry < maxRetries){	
-
-
 			// 🔥 HARD RESET BEFORE NEW REQUEST
 			plotsTextfromAI = "";
 			storyFromPlot = "";
@@ -566,11 +563,11 @@
 					}
 					if (generate == "story") {
 						let selectedPlot = document.querySelector("#selectedPlot");
-						let core_idea = selectedPlot.querySelector("#coreIdea").value;
-						let protagonist = selectedPlot.querySelector("#protagonist").value;
-						let conflict = selectedPlot.querySelector("#conflict").value;
-						let stakes = selectedPlot.querySelector("#stakes").value;
-						let direction = selectedPlot.querySelector("#direction").value;
+						let core_idea = selectedPlot.querySelector("#sel_coreIdea").value;
+						let protagonist = selectedPlot.querySelector("#sel_protagonist").value;
+						let conflict = selectedPlot.querySelector("#sel_conflict").value;
+						let stakes = selectedPlot.querySelector("#sel_stakes").value;
+						let direction = selectedPlot.querySelector("#sel_direction").value;
 						response = await fetch('/send_data_to_llm', {
 							method: 'POST',
 							headers: {
@@ -795,7 +792,8 @@
 						available_plot: JSON.stringify(plot)
 					})
 				});
-				const data = await response.json();
+				//console.log("Response on plot update : ", response);
+				//const data = await response.json();
 			} catch (error) {
 				console.error("Failed to update session:", error);
 			}
