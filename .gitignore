@@ -46,6 +46,7 @@ static/js/*
 drafts/
 app-orig.py
 git-commands.bat
+TODO.md
 
 # Blackbox AI
 TODO*.md
