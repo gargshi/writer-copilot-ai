@@ -366,6 +366,7 @@
 		} 
 
 		/* ================= FORMS & INPUTS ================= */
+		
 		.form-control {
 			border: 1px solid var(--border-light);
 			background-color: var(--bg-input) !important;
@@ -492,6 +493,7 @@
 		input {
 			cursor: text;
 			caret-color: var(--text-primary);
+			text-align: justify;
 		}
 
 		#dragDockBtn {
@@ -517,7 +519,61 @@
 			cursor: pointer;
 		}
 
-		
+		/* Base slider */
+		#fontSize {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 150px;			
+			border-radius: 0px;
+			background: transparent;
+			
+			outline: none;
+			transition: all 0.2s ease;
+		}
+
+		/* Track (Chrome) */
+		#fontSize::-webkit-slider-runnable-track {
+			height: 6px;
+			border-radius: 10px;
+			background: linear-gradient(
+				to right,
+				var(--primary) 0%,
+				var(--primary) var(--value, 50%),
+				var(--bg-accent) var(--value, 50%),
+				var(--bg-accent) 100%
+			);
+		}
+
+		/* Thumb */
+		#fontSize::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			width: 14px;
+			height: 14px;
+			border-radius: 50%;
+			background: var(--primary);
+			cursor: pointer;
+			margin-top: -4px;
+			box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+			transition: all 0.2s ease;
+		}
+
+		/* Hover effect */
+		#fontSize:hover::-webkit-slider-thumb {
+			transform: scale(1.2);
+		}
+
+		/* Active (dragging) */
+		#fontSize:active::-webkit-slider-thumb {
+			transform: scale(1.3);
+			box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15);
+		}	
+
+		#fontSizeValue {
+			font-size: 14px;
+			color: var(--text-primary);
+			margin-left: 10px;
+			min-width: 40px;
+		}		
 	</style>
 
 

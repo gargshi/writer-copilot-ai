@@ -41,7 +41,7 @@
 		appearance: none;
 		background: var(--bg-card);
 		color: var(--text-primary);
-		border: var(--border-light);
+		border: gray 1px solid;
 		border-radius: 8px;
 		padding: 6px 30px 6px 10px;
 		font-size: 14px;		
@@ -72,7 +72,7 @@
 				<p class="desc">{{ session.session_description }}</p>
 
 				<p class="text-small" id="created">{{ session.timestamp }}</p>
-				<p class="text-small" id="sessionid">{{ session.session_id }}</p>
+				<!-- <p class="text-small" id="sessionid">{{ session.session_id }}</p> -->
 				<a class="btn btn-primary" href="{{ url_for('sessions') }}"><i class="bi bi-arrow-left"></i> Back</a>				
 			</div>
 			<div class="p-0">
@@ -150,7 +150,10 @@
 			<div class="settings mt-4 p-3 bordered">
 				<h4>Quick Settings</h4>
 				<hr>
-				<button class="btn btn-primary" onclick="resetDockPosition()">Reset Dock</button>
+				<button class="btn btn-primary" onclick="resetDockPosition()">
+					<i class="bi bi-arrow-clockwise"></i>
+					Reset Dock
+				</button>
 			</div>
 		</div>
 		<div class="col-md-8 right-panel">
@@ -187,31 +190,42 @@
 				</div>
 				
 				<div class="row gen-story-panel">
-					<h4>Generated Story</h4>
+					<h5 class=" verdana">Generated Story</h5>
 					<div class="format-tools">
 						<label for="font">Font</label>
 						<select id="font" name="font" class="form-control">
 							<option value="Arial">Arial</option>
 							<option value="Courier">Courier</option>
 							<option value="Georgia">Georgia</option>
-						</select>
+						</select>						
+						
 						<label for="fontSize">Size</label>
-						<select id="fontSize" name="fontSize" class="form-control">
-							<option value="10">10</option>
-							<option value="12" default>12</option>
-							<option value="14">14</option>
-							<option value="16">16</option>
-							<option value="18">18</option>
-							<option value="20">20</option>
-						</select>
-						<button class="btn btn-primary" id="clearStory">Clear</button>
+						<input type="range" id="fontSize" name="fontSize" min="10" max="20" value="12">
+						<span id="fontSizeValue"></span>
+
+					</div>					
+					<div class="col-md-12 mb-2">
+						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">
+							<i class="bi bi-floppy"></i>
+							 Save
+						</button>
+						<button class="btn btn-primary mr-2" id="clearStory">
+							<i class="bi bi-eraser-fill"></i>
+							 Clear
+						</button>
+						<button class="btn btn-primary" id="copyStory" onclick="copyToClipboard('generatedStory')">
+							<i class="bi bi-clipboard"></i>
+							 Copy
+						</button>
+						<button class="btn btn-secondary" id="continueStory" onclick="sendDataToLLM(generate='continue',el=this)">
+							<i class="bi bi-robot"></i>
+							Continue with AI
+						</button>
 					</div>
+					
 					<div id="storyPlot">
 						<textarea class="form-control text-area text-justify h-500" id="generatedStory"
 						placeholder="Generated Story"></textarea>
-					</div>
-					<div class="col-md-12 mb-2">
-						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">Save</button>
 					</div>
 				</div>
 			</div>
@@ -227,6 +241,18 @@
 {% endblock %}
 {% block scripts %}
 <script>
+
+	function copyToClipboard(elementId) {
+		const text = document.getElementById(elementId).value;
+		navigator.clipboard.writeText(text)
+			.then(() => {
+				alert("Story copied to clipboard!");
+			})
+			.catch(err => {
+				console.error("Failed to copy: ", err);
+			});
+	}
+	
 	function scrollToSection(id) {
 	const el = document.getElementById(id);
 	if (el) {
@@ -235,6 +261,16 @@
 				block: "start"
 			});
 		}
+	}
+
+	function openAIOutput() {
+		const el = document.getElementById("collapseTwo");
+
+		if (!el.classList.contains("show")) {
+			new bootstrap.Collapse(el, { toggle: true });
+		}
+
+		el.scrollIntoView({ behavior: "smooth", block: "start" });
 	}
 	const ts_elem = document.getElementById('created');
 	let av_plots = {{ plots.available | default([]) | tojson }};
@@ -322,6 +358,7 @@
 
 	function createStoryDraftDiv(i, storyDraft) {
 		const div = document.createElement("div");
+		div.classList.add("text-justify");
 		div.classList.add("card");
 		div.classList.add("m-2");
 		div.innerHTML = `
@@ -341,7 +378,7 @@
 				<p>${storyDraft['plot']['direction']}</p>
 				<label>Story Opening</label>
 				<p>${storyDraft['story']}</p>
-				<p>Created: ${storyDraft['timestamp']}</p>
+				<p>Created: ${timeAgo(storyDraft['timestamp'])}</p>
 			</div>
 			<div class="card-footer">
 				<button class="btn btn-primary" onclick="useStoryDraft(${i})">Use Draft</button>
@@ -457,6 +494,8 @@
 		const storyPerson = useTestData ? test_data.storyPerson : document.getElementById("storyPerson").value;
 		const noOfPlots = useTestData ? test_data.noOfPlots : document.getElementById("noOfPlots").value;
 
+		let currentStory = document.getElementById("generatedStory").value;
+
 		/* Update sidebar */
 
 		document.getElementById("mainConflict").value = mainConflict;
@@ -485,9 +524,13 @@
 			console.log(response1);		
 		}
 
+		
+
 		success=false;
 		maxRetries = 10;
 		retry=0;
+
+		openAIOutput();
 
 		while(!success && retry < maxRetries){	
 
@@ -549,6 +592,25 @@
 						});
 					}
 
+					if (generate == "continue") {
+						let currentStory = document.getElementById("generatedStory").value;
+
+						response = await fetch('/send_data_to_llm', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify({
+								generate,
+								currentStory,
+								wordsToGenerate,
+								storyType,
+								storyPerson
+							}),
+							signal: controller.signal
+						});
+					}
+
 					if (!response.body) {
 						throw new Error("Streaming not supported");
 					}
@@ -589,6 +651,11 @@
 							aiOutput.scrollTop = aiOutput.scrollHeight;
 							//storyDiv.scrollTop = storyDiv.scrollHeight;
 						}
+						else if (generate == "continue") {
+							storyFromPlot += chunk;
+							aiOutput.innerHTML = storyFromPlot;
+							aiOutput.scrollTop = aiOutput.scrollHeight;
+						}
 					}
 				}
 				if (generate == "plots") {
@@ -596,6 +663,9 @@
 				}
 				else if (generate == "story") {
 					await populateStory();//implement saving logic
+				}
+				else if (generate == "continue") {
+					await getContinuation();//implement saving logic
 				}
 				success = true;
 			} catch (error) {
@@ -610,6 +680,41 @@
 			}
 		}
 	};
+
+	getContinuation = async function(){
+		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
+
+		if (!jsonMatch) {
+			throw new Error("No valid JSON found");
+		}
+
+		 let safeJSON = jsonMatch[0];
+
+		// 🔥 Clean control characters
+		safeJSON = safeJSON
+			.replace(/\n/g, "")
+			.replace(/\r/g, "")
+			.replace(/\t/g, " ");
+
+		try {
+			console.log(safeJSON);
+			const cleanedStoryFromPlot = JSON.parse(safeJSON);
+			let continuation = cleanedStoryFromPlot.continuation;
+
+			console.log("Continuation received:", continuation);
+
+			// 🔥 Render properly
+			storyDiv.value += " "+continuation.replace(/\\n/g, "<br>");
+
+			await saveStoryDraft();
+
+			
+		} catch (e) {
+			console.error("JSON parsing failed:", e);
+			console.log("Problematic JSON:", safeJSON);
+		}
+		stopButton.style.display = "none";
+	}
 
 	populateStory = async function () {
 		
@@ -865,6 +970,7 @@
 	const fontSizeSelect = document.getElementById("fontSize");
 	const textarea = document.getElementById("generatedStory");
 	const clearButton = document.getElementById("clearStory");
+	const fontSizeValue = document.getElementById("fontSizeValue");
 
 	// Apply styles when font changes
 	fontSelect.addEventListener("change", () => {
@@ -873,9 +979,14 @@
 	});
 
 	// Apply styles when font size changes
-	fontSizeSelect.addEventListener("change", () => {
+	fontSizeSelect.addEventListener("input", () => {
 		textarea.style.fontSize = fontSizeSelect.value + "px";
+		fontSizeValue.textContent = fontSizeSelect.value + "px";
 		localStorage.setItem("fontSize", fontSizeSelect.value);
+		let percent = ((fontSizeSelect.value - fontSizeSelect.min) / 
+						(fontSizeSelect.max - fontSizeSelect.min)) * 100;
+
+		fontSizeSelect.style.setProperty("--value", percent + "%");
 	});
 
 	// Optional: set default on load
@@ -891,6 +1002,11 @@
 		if (storedFontSize) {
 			fontSizeSelect.value = storedFontSize;
 			textarea.style.fontSize = storedFontSize + "px";
+			fontSizeValue.textContent = storedFontSize + "px";
+			let percent = ((fontSizeSelect.value - fontSizeSelect.min) / 
+							(fontSizeSelect.max - fontSizeSelect.min)) * 100;
+
+			fontSizeSelect.style.setProperty("--value", percent + "%");
 		}
 	});
 

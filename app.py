@@ -430,23 +430,65 @@ def give_data_to_llm():
 						- Do NOT change input facts (names, places, roles)
 						- Do not truncate output
 				"""
-	return llm_prompt(prompt, show_think=True)
+	elif data['generate'] == "continue":
+		prompt = f"""
+			You are an expert story writer continuing an existing narrative.
 
+			Task:
+			Continue the story seamlessly from where it left off.
 
-@app.route('/continue_with_ai', methods=['POST'])
-def continue_with_ai():
-	data = request.get_json()
-	prompt = f"""
-		Story till now: {data["storyTillNow"]}
+			Requirements:
+			- You MUST continue from the last line of the provided story
+			- You MUST NOT restart, summarize, or rewrite earlier parts
+			- You MUST preserve tone, pacing, and narrative style
+			- You MUST maintain character consistency (names, traits, roles)
+			- You MUST NOT introduce contradictions
+			- You MAY introduce new elements ONLY if they logically follow
 
-		Your task is to write the next scene of the story.
-		Write a compelling next scene and stay within the scope as defined in the parameters above.
-		If no word limit is defined GENERATE AROUND 300 WORDS ONLY.[THIS IS ESSENTIAL]
+			Inputs:
+			Story so far:
+			{data["currentStory"]}
 
-		KEEP NOTE OF THE FOLLOWING:-
-		1. NO ABUSIVE LANGUAGE.
+			Words to Generate: {data["wordsToGenerate"]}
+			Story Type: {data["storyType"]}
+			Narration Style: {data["storyPerson"]}
+
+			Output:
+			Return ONLY a valid JSON object as per the schema below.
+
+			Schema (STRICT):
+			{{
+				"continuation": "string"
+			}}
+
+			Field constraints:
+			- Value MUST be a plain string
+			- No lists, no formatting, no markdown
+
+			Critical Rules:
+			- Output ONLY JSON (no text before or after)
+			- Start with '{{' and end with '}}'
+			- Do NOT repeat previous story unless necessary for flow
+			- Continue directly from the last sentence
+			- Do not truncate output
 		"""
 	return llm_prompt(prompt, show_think=True)
+
+
+# @app.route('/continue_with_ai', methods=['POST'])
+# def continue_with_ai():
+# 	data = request.get_json()
+# 	prompt = f"""
+# 		Story till now: {data["storyTillNow"]}
+
+# 		Your task is to write the next scene of the story.
+# 		Write a compelling next scene and stay within the scope as defined in the parameters above.
+# 		If no word limit is defined GENERATE AROUND 300 WORDS ONLY.[THIS IS ESSENTIAL]
+
+# 		KEEP NOTE OF THE FOLLOWING:-
+# 		1. NO ABUSIVE LANGUAGE.
+# 		"""
+# 	return llm_prompt(prompt, show_think=True)
 
 
 def llm_prompt(prompt, show_think=False):
