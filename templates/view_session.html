@@ -874,11 +874,11 @@
 		const direction= card.querySelector(".direction").value;
 
 		const selectedPlot = document.querySelector("#selectedPlot");
-		selectedPlot.querySelector("#coreIdea").value = core_idea;
-		selectedPlot.querySelector("#protagonist").value = protagonist;
-		selectedPlot.querySelector("#conflict").value = conflict;
-		selectedPlot.querySelector("#stakes").value = stakes;
-		selectedPlot.querySelector("#direction").value = direction;
+		selectedPlot.querySelector("#sel_coreIdea").value = core_idea;
+		selectedPlot.querySelector("#sel_protagonist").value = protagonist;
+		selectedPlot.querySelector("#sel_conflict").value = conflict;
+		selectedPlot.querySelector("#sel_stakes").value = stakes;
+		selectedPlot.querySelector("#sel_direction").value = direction;
 
 
 		fetch('/update_session', {
