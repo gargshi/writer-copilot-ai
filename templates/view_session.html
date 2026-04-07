@@ -75,77 +75,44 @@
 				<!-- <p class="text-small" id="sessionid">{{ session.session_id }}</p> -->
 				<a class="btn btn-primary" href="{{ url_for('sessions') }}"><i class="bi bi-arrow-left"></i> Back</a>				
 			</div>
-			<div class="p-0">
-				<div class="accordion" id="leftAccordion">
-					<div class="accordion-item">
-						<h2 class="accordion-header">
-							<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-								data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-								Story Parameters
-							</button>
-						</h2>
-						<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
-							data-bs-parent="#leftAccordion">
-							<div class="accordion-body">
-								<div class="form-group gap-10">
-									<h5 class="verdana">Story Parameters</h5>
-									<label for="mainConflict">Main conflict</label>
-									<textarea class="form-control text-area" placeholder="What is the central conflict?"
-										id="mainConflict"></textarea>
+			<div class="p-0 bordered">
+				<div class="form-group p-4 d-flex flex-column gap-10">
+					<h5 class="verdana">Story Parameters</h5>
+					<label for="mainConflict">Main conflict</label>
+					<textarea class="form-control text-area" placeholder="What is the central conflict?"
+						id="mainConflict"></textarea>
 
-									<label for="protagonist">Protagonist</label>
-									<textarea class="form-control text-area" placeholder="Who is the main character?"
-										id="protagonist"></textarea>
+					<label for="protagonist">Protagonist</label>
+					<textarea class="form-control text-area" placeholder="Who is the main character?"
+						id="protagonist"></textarea>
 
-									<label for="storyPerson">Person</label>
-									<select class="form-control" title="Person" name="storyPerson" id="storyPerson">
-										<option value="First Person">First Person</option>
-										<option value="Third Person" default>Third Person</option>
-									</select>
+					<label for="storyPerson">Person</label>
+					<select class="form-control" title="Person" name="storyPerson" id="storyPerson">
+						<option value="First Person">First Person</option>
+						<option value="Third Person" default>Third Person</option>
+					</select>
 
-									<label for="openingScene">Opening scene</label>
-									<textarea class="form-control text-area"
-										placeholder="What happens in the first scene?" id="openingScene"></textarea>
+					<label for="openingScene">Opening scene</label>
+					<textarea class="form-control text-area"
+						placeholder="What happens in the first scene?" id="openingScene"></textarea>
 
-									<label for="storyType">Story Type</label>
-									<select class="form-control" title="Story Type" name="storyType" id="storyType">
-										<option value="Novella">Novella</option>
-										<option value="Short Story" default>Short Story</option>
-										<option value="Long Story">Long Story</option>
-										<option value="Novel">Novel</option>
-									</select>
-									<label for="noOfPlots">Number of plots to generate</label>
-									<input type="number" class="form-control" placeholder="Number of plots"
-										id="noOfPlots" value="1" />
+					<label for="storyType">Story Type</label>
+					<select class="form-control" title="Story Type" name="storyType" id="storyType">
+						<option value="Novella">Novella</option>
+						<option value="Short Story" default>Short Story</option>
+						<option value="Long Story">Long Story</option>
+						<option value="Novel">Novel</option>
+					</select>
+					<label for="noOfPlots">Number of plots to generate</label>
+					<input type="number" class="form-control" placeholder="Number of plots"
+						id="noOfPlots" value="1" />
 
-									<label for="wordsToGenerate">Words to Generate</label>
-									<input type="number" class="form-control" placeholder="Number of words to generate"
-										id="wordsToGenerate" value="300" />
-									<button class="btn btn-primary genplotbtn"
-										onclick="sendDataToLLM(generate='plots',el=this)">Generate Plots</button>
-								</div>
-							</div>
-						</div>
-					</div>					
-					<div class="accordion-item">
-						<h2 class="accordion-header">
-							<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-								data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-								AI Output
-							</button>
-						</h2>
-						<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingThree"
-							data-bs-parent="#leftAccordion">
-							<div class="accordion-body">
-								<div class="form-group gap-10">
-									<h5 class=" verdana">AI Output</h5>
-									<button class="btn btn-danger" id="stopBtn">Stop Generation</button>
-									<div class="form-control" id="aiOutput" placeholder="AI Output"></div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+					<label for="wordsToGenerate">Words to Generate</label>
+					<input type="number" class="form-control" placeholder="Number of words to generate"
+						id="wordsToGenerate" value="300" />
+					<button class="btn btn-primary genplotbtn"
+						onclick="sendDataToLLM(generate='plots',el=this)">Generate Plots</button>
+				</div>				
 			</div>
 			<div class="settings mt-4 p-3 bordered">
 				<h4>Quick Settings</h4>
@@ -161,7 +128,7 @@
 			<div class="bordered" id="plots-section">
 				<h4>Plots</h4>
 				<hr>
-				<div id="status"></div>
+				
 				<!-- <div id="plots"></div> -->
 				<div class="accordion" id="plots"></div>
 			</div>
@@ -185,18 +152,32 @@
 					<label>Direction</label>
 					<textarea class="form-control text-area" id="sel_direction"
 						placeholder="Direction">${plot.direction}</textarea>
+					<label>Rough Story Timeline</label>
+					<textarea class="form-control text-area" id="sel_roughStoryTimeline"
+						placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
 					<button class="btn btn-primary genstorybtn"
 					onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
 				</div>
 				
 				<div class="row gen-story-panel">
 					<h5 class=" verdana">Generated Story</h5>
+					<div class="col-md-12 mb-2">
+						<label for="storyTitle">Story Title</label>
+						<input type="text" class="form-control" id="storyTitle" placeholder="Story Title">
+					</div>
 					<div class="format-tools">
 						<label for="font">Font</label>
 						<select id="font" name="font" class="form-control">
 							<option value="Arial">Arial</option>
 							<option value="Courier">Courier</option>
 							<option value="Georgia">Georgia</option>
+							<option value="Times New Roman">Times New Roman</option>
+							<option value="Verdana" selected>Verdana</option>
+							<option value="Trebuchet MS">Trebuchet MS</option>
+							<option value="Garamond">Garamond</option>
+							<option value="Comic Sans MS">Comic Sans MS</option>
+							<option value="Brush Script MT">Brush Script MT</option>
+							<option value="Inter">Inter</option>
 						</select>						
 						
 						<label for="fontSize">Size</label>
@@ -217,15 +198,18 @@
 							<i class="bi bi-clipboard"></i>
 							 Copy
 						</button>
-						<button class="btn btn-secondary" id="continueStory" onclick="sendDataToLLM(generate='continue',el=this)">
-							<i class="bi bi-robot"></i>
-							Continue with AI
-						</button>
+						
 					</div>
 					
 					<div id="storyPlot">
 						<textarea class="form-control text-area text-justify h-500" id="generatedStory"
 						placeholder="Generated Story"></textarea>
+					</div>
+					<div class="col-md-12 mb-2">
+						<button class="btn btn-secondary" id="continueStory" onclick="sendDataToLLM(generate='continue',el=this)">
+							<i class="bi bi-robot"></i>
+							Continue with AI
+						</button>
 					</div>
 				</div>
 			</div>
@@ -263,15 +247,7 @@
 		}
 	}
 
-	function openAIOutput() {
-		const el = document.getElementById("collapseTwo");
-
-		if (!el.classList.contains("show")) {
-			new bootstrap.Collapse(el, { toggle: true });
-		}
-
-		el.scrollIntoView({ behavior: "smooth", block: "start" });
-	}
+	
 	const ts_elem = document.getElementById('created');
 	let av_plots = {{ plots.available | default([]) | tojson }};
 	console.log(av_plots);
@@ -284,9 +260,6 @@
 	let plotCounter=0;
 	let storyDrafts = [];
 	const sessionId = "{{ session.session_id }}";
-	const stopButton = document.getElementById("stopBtn");
-	stopButton.style.display = "none";
-	const aiOutput = document.getElementById("aiOutput");
 	const storyDiv = document.getElementById("generatedStory");
 
 	function loadPlots() {
@@ -299,6 +272,14 @@
 				const av_plots = res.plots.available;
 
 				plotsDiv.innerHTML = "";
+
+				if (av_plots.length === 0) {
+					plotsDiv.innerHTML = `
+						<div class="alert alert-info" role="alert">
+							No plots available. Use the AI to generate new plots.
+						</div>
+					`;
+				}
 
 				for (let i = 0; i < av_plots.length; i++) {
 					const plotObj = av_plots[i];   // {plot_id, plot}
@@ -317,6 +298,7 @@
 				storyDrafts = res.story_drafts;
 				const storyDraftsDiv = document.querySelector(".story-drafts");
 				storyDraftsDiv.innerHTML = "";
+				storyDraftsDiv.classList.add("row");
 				for (let i = 0; i < storyDrafts.length; i++) {
 					const storyDraft = storyDrafts[i];
 					storyDrafts[i] = storyDraft;
@@ -325,73 +307,221 @@
 			});
 		
 		if (last && storyDrafts.length > 0) {
-			useStoryDraft(storyDrafts.length-1);
+			useStoryDraft(storyDrafts.length-1,last=true);
+		}
+		if (storyDrafts.length === 0) {
+			storyDiv.value = "";
+			document.querySelector(".story-drafts").innerHTML = `
+				<div class="alert alert-info" role="alert">
+					No story drafts available.
+				</div>
+			`;
 		}
 	}
 
 	async function saveStoryDraft() {
 		let selectedPlot = document.querySelector("#selectedPlot");
+
 		let core_idea = selectedPlot.querySelector("#sel_coreIdea").value;
 		let protagonist = selectedPlot.querySelector("#sel_protagonist").value;
 		let conflict = selectedPlot.querySelector("#sel_conflict").value;
 		let stakes = selectedPlot.querySelector("#sel_stakes").value;
 		let direction = selectedPlot.querySelector("#sel_direction").value;
+		let roughStoryTimeline = selectedPlot.querySelector("#sel_roughStoryTimeline").value;
+		let storyTitle = document.getElementById("storyTitle").value || "Untitled";
+
 		let story = storyDiv.value;
-		console.log("story div value :", story);
-		await fetch('/update_session', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			},
-			body: new URLSearchParams({ 
-				id:sessionId, 
-				story,
-				core_idea,
-				protagonist,
-				conflict,
-				stakes,
-				direction
-			})
-		});
-		await loadStoryDrafts();
+
+		async function saveStoryYes() {
+			//console.log("story div value :", story);
+
+			await fetch('/update_session', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: new URLSearchParams({ 
+					id: sessionId, 
+					story,
+					core_idea,
+					protagonist,
+					conflict,
+					stakes,
+					direction,
+					roughStoryTimeline,
+					storyTitle
+				})
+			});
+		}
+
+		function showSaveDialog() {
+			return new Promise((resolve) => {
+				const modalObj = createModal(`
+					<h3>Saving...</h3>
+					<p>Do you want to save the story?</p>
+					<div class="d-flex justify-content-end gap-2">
+						<button class="btn btn-secondary" id="cancelSave">Cancel</button>
+						<button class="btn btn-primary" id="confirmSave">Save</button>
+					</div>
+				`);
+
+				console.log(modalObj);			
+				
+				const modalEl = modalObj.el;
+				const modal = modalObj.instance;
+				
+				
+				modalEl.querySelector("#cancelSave").onclick = () => {
+					modal.hide();
+					resolve(false);
+				};
+
+				modalEl.querySelector("#confirmSave").onclick = () => {
+					modal.hide();
+					resolve(true);
+				};
+
+				modal.show();
+
+			});
+		}
+
+		// 🔥 Proper flow
+		const shouldSave = await showSaveDialog();
+
+		if (shouldSave) {
+			await saveStoryYes();        // wait for API
+			await loadStoryDrafts();     // THEN refresh
+		} else {
+			console.log("User cancelled");
+		}
 	}
 
-	function createStoryDraftDiv(i, storyDraft) {
+	/*function createStoryDraftDiv(i, storyDraft) {
 		const div = document.createElement("div");
-		div.classList.add("text-justify");
-		div.classList.add("card");
+		div.classList.add("text-justify");		
 		div.classList.add("m-2");
+		div.classList.add("mb-4");
+		div.classList.add("draft-card");	
+		
+		div.style.cursor = "pointer";
 		div.innerHTML = `
-			<div class="card-header">
-				 ${i+1}
-			</div>
-			<div class="card-body">
-				<label>Plot</label>
-				<p>${storyDraft['plot']['core_idea']}</p>
-				<label>Protagonist</label>
-				<p>${storyDraft['plot']['protagonist']}</p>
-				<label>Conflict</label>
-				<p>${storyDraft['plot']['conflict']}</p>
-				<label>Stakes</label>
-				<p>${storyDraft['plot']['stakes']}</p>
-				<label>Direction</label>
-				<p>${storyDraft['plot']['direction']}</p>
-				<label>Story Opening</label>
-				<p>${storyDraft['story']}</p>
+			<div class="flex justify-content-end">
+				<h5 class="card-title">${storyDraft['draft_title'] || 'Untitled Draft'}</h5>
+			
+			
 				<p>Created: ${timeAgo(storyDraft['timestamp'])}</p>
-			</div>
-			<div class="card-footer">
-				<button class="btn btn-primary" onclick="useStoryDraft(${i})">Use Draft</button>
-				<button class="btn btn-danger" data-timestamp="${storyDraft['timestamp']}" onclick="rejectStoryDraft(this)">Delete Draft</button>
+				<div class="card-footer">
+					<button class="btn btn-primary" onclick="useStoryDraft(${i})">Use Draft</button>
+					<button class="btn btn-danger" data-timestamp="${storyDraft['timestamp']}" onclick="rejectStoryDraft(this)">Delete Draft</button>
+				</div>
 			</div>
 		`;
+		
+		return div;
+	}*/
+	function createStoryDraftDiv(i, storyDraft) {
+		const div = document.createElement("div");
+		div.className = "draft-card";
+
+		div.innerHTML = `
+			<div class="draft-header">
+				<h5 class="draft-title">
+					${storyDraft.draft_title || "Untitled Draft"}
+				</h5>
+				<span class="draft-time">
+					${timeAgo(storyDraft.timestamp)}
+				</span>
+			</div>
+
+			<div class="draft-meta">
+				<span>Protagonist: ${storyDraft.plot?.protagonist || "—"}</span>
+				<span>Conflict: ${storyDraft.plot?.conflict || "—"}</span>
+			</div>
+
+			<div class="draft-actions">
+				<button class="btn btn-sm btn-primary use-btn">
+					Use
+				</button>
+				<button class="btn btn-sm btn-danger delete-btn"
+					data-timestamp="${storyDraft.timestamp}">
+					Delete
+				</button>
+			</div>
+		`;
+
+		// 🔹 Card click (select draft)
+		div.addEventListener("click", () => {
+			useStoryDraft(i);
+		});
+
+		// 🔹 Prevent button clicks from triggering card click
+		div.querySelector(".use-btn").addEventListener("click", (e) => {
+			e.stopPropagation();
+			useStoryDraft(i);
+		});
+
+		div.querySelector(".delete-btn").addEventListener("click", (e) => {
+			e.stopPropagation();
+			rejectStoryDraft(e.target);
+		});
+
 		return div;
 	}
 
-	function useStoryDraft(i){
+	async function useStoryDraft(i, last=false) {
+		function previewStoryDraft(storyDraft) {
+			return new Promise((resolve) => {
+				const modalObj = createModal(`
+					<h4>${storyDraft.draft_title || "Untitled Draft"}</h4>
+					
+					<div style="max-height: 400px; overflow-y: auto; margin-top:10px;">
+						<p><strong>Plot:</strong> ${storyDraft.plot.core_idea}</p>
+						<p><strong>Protagonist:</strong> ${storyDraft.plot.protagonist}</p>
+						<p><strong>Conflict:</strong> ${storyDraft.plot.conflict}</p>
+						<p><strong>Stakes:</strong> ${storyDraft.plot.stakes}</p>
+						<p><strong>Direction:</strong> ${storyDraft.plot.direction}</p>
+						<p><strong>Timeline:</strong> ${storyDraft.plot.rough_story_timeline}</p>
+						<hr>
+						<p><strong>Opening:</strong></p>
+						<p style="white-space: pre-wrap;">${storyDraft.story}</p>
+					</div>
+
+					<div class="d-flex justify-content-end gap-2 mt-3">
+						<button class="btn btn-secondary" id="cancelPreview">Close</button>
+						<button class="btn btn-primary" id="loadDraft">Load Draft</button>
+					</div>
+				`);
+
+				const modalEl = modalObj.el;
+				const modal = modalObj.instance;
+
+				modalEl.querySelector("#cancelPreview").onclick = () => {
+					modal.hide();
+					resolve(false);
+				};
+
+				modalEl.querySelector("#loadDraft").onclick = () => {
+					modal.hide();
+					resolve(true);
+				};
+
+				modal.show();
+			});
+		}
+		
+
 		console.log("Found storyDrafts:", storyDrafts);
 		//alert("Story Draft active");
 		const storyDraft = storyDrafts[i];
+		if (last) {
+			console.log("Using last story draft:", storyDraft);
+		} else {
+			console.log("Using story draft index:", i, storyDraft);
+			const shouldLoad = await previewStoryDraft(storyDraft);
+			if (!shouldLoad) return;
+		}
+
 		console.log(storyDraft);
 		const selectedPlot = document.querySelector("#selectedPlot");
 		selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
@@ -399,7 +529,9 @@
 		selectedPlot.querySelector("#sel_conflict").value = storyDraft['plot']['conflict'];
 		selectedPlot.querySelector("#sel_stakes").value = storyDraft['plot']['stakes'];
 		selectedPlot.querySelector("#sel_direction").value = storyDraft['plot']['direction'];
+		selectedPlot.querySelector("#sel_roughStoryTimeline").value = storyDraft['plot']['rough_story_timeline'];
 		storyDiv.value = storyDraft['story'];
+		document.getElementById("storyTitle").value = storyDraft['draft_title'];
 	}
 
 	function load_values_in_forms() {
@@ -421,6 +553,7 @@
 			selectedPlot.querySelector("#sel_conflict").value = usedPlot.used.plot.conflict;
 			selectedPlot.querySelector("#sel_stakes").value = usedPlot.used.plot.stakes;
 			selectedPlot.querySelector("#sel_direction").value = usedPlot.used.plot.direction;
+			selectedPlot.querySelector("#sel_roughStoryTimeline").value = usedPlot.used.plot.rough_story_timeline;
 		}
 		else {
 			selectedPlot.querySelector("#sel_coreIdea").value = "";
@@ -428,35 +561,13 @@
 			selectedPlot.querySelector("#sel_conflict").value = "";
 			selectedPlot.querySelector("#sel_stakes").value = "";
 			selectedPlot.querySelector("#sel_direction").value = "";
+			selectedPlot.querySelector("#sel_roughStoryTimeline").value = "";
 		}
 
 		loadPlots();
 		loadStoryDrafts(last=true);
 	}
-	load_values_in_forms();
-	function timeAgo(timestamp) {
-		const now = new Date();
-		const date = new Date(Number(timestamp)); // already in ms
-		const seconds = Math.floor((now - date) / 1000);
-
-		if (seconds < 5) return "Just now";
-
-		const intervals = [
-			{ label: "year", seconds: 31536000 },
-			{ label: "month", seconds: 2592000 },
-			{ label: "day", seconds: 86400 },
-			{ label: "hour", seconds: 3600 },
-			{ label: "minute", seconds: 60 },
-			{ label: "second", seconds: 1 }
-		];
-
-		for (const interval of intervals) {
-			const count = Math.floor(seconds / interval.seconds);
-			if (count >= 1) {
-				return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
-			}
-		}
-	}
+	load_values_in_forms();	
 
 	function convertToAgoFormat(rawText) {
 		const timestamp = rawText.replace("Created:", "").trim();
@@ -526,16 +637,53 @@
 		
 
 		let success=false;
-		let maxRetries = 10;
+		let maxRetries = 1;
 		let retry=0;
 
-		openAIOutput();
+		let modalHTML = `
+			<h3>Generating...</h3>
+			<p>Please wait while the AI generates the content. This may take a moment.</p>
+			<button class="btn btn-danger" id="stopBtn">Stop Generation</button>
+			<div class="form-control" id="aiOutput" placeholder="AI Output"></div>
+		`;
+
+		let displayModal=createModal(modalHTML);
+		displayModal.instance.show();
+		let aiOutput = displayModal.get("#aiOutput");
+		aiOutput.innerHTML = "";
+		let stopButton = displayModal.get("#stopBtn");
+		stopButton.style.display = "none";
+		async function stopGeneration() {
+			if (controller) {
+				controller.abort();
+			}
+
+			if (!currentRequestId) return;
+
+			await fetch("/stop_generation", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					request_id: currentRequestId
+				})
+			});
+
+			currentRequestId = null;
+			plotsTextfromAI = "";
+			aiOutput.innerHTML = "";
+			stopButton.style.display = "none";
+		}
+
 
 		while(!success && retry < maxRetries){	
 			// 🔥 HARD RESET BEFORE NEW REQUEST
 			plotsTextfromAI = "";
 			storyFromPlot = "";
-			document.getElementById("aiOutput").innerHTML = "";
+			aiOutput.innerHTML = "";
+
+			
 
 			controller = new AbortController();
 
@@ -568,6 +716,7 @@
 						let conflict = selectedPlot.querySelector("#sel_conflict").value;
 						let stakes = selectedPlot.querySelector("#sel_stakes").value;
 						let direction = selectedPlot.querySelector("#sel_direction").value;
+						let roughStoryTimeline = selectedPlot.querySelector("#sel_roughStoryTimeline").value;
 						response = await fetch('/send_data_to_llm', {
 							method: 'POST',
 							headers: {
@@ -583,7 +732,8 @@
 								direction,
 								wordsToGenerate,
 								storyType,
-								storyPerson
+								storyPerson,
+								roughStoryTimeline
 							}),
 							signal: controller.signal
 						});
@@ -591,6 +741,7 @@
 
 					if (generate == "continue") {
 						let currentStory = document.getElementById("generatedStory").value;
+						let roughStoryTimeline = document.querySelector("#sel_roughStoryTimeline").value;
 
 						response = await fetch('/send_data_to_llm', {
 							method: 'POST',
@@ -602,7 +753,8 @@
 								currentStory,
 								wordsToGenerate,
 								storyType,
-								storyPerson
+								storyPerson,
+								roughStoryTimeline
 							}),
 							signal: controller.signal
 						});
@@ -618,6 +770,7 @@
 					//status.innerText = (!generatePlots) ? "Generating Story..." : "Generating Plots... Please wait...";
 
 					stopButton.style.display = "inline-block";
+					stopButton.addEventListener("click", () => stopGeneration(), { once: true });
 
 					const thisRequestId = currentRequestId;  // 🔥 ADD THIS BEFORE LOOP
 
@@ -626,7 +779,12 @@
 
 						const { done, value } = await reader.read();
 
-						if (done) break;
+						if (done){
+							stopButton.style.display = "none";
+							displayModal.close();
+							console.log("Stream complete");
+							break;
+						}
 
 						// 🔥 IGNORE OLD STREAM DATA
 						if (thisRequestId !== currentRequestId) {
@@ -710,7 +868,7 @@
 			console.error("JSON parsing failed:", e);
 			console.log("Problematic JSON:", safeJSON);
 		}
-		stopButton.style.display = "none";
+		
 	}
 
 	populateStory = async function () {
@@ -744,7 +902,7 @@
 			console.error("JSON parsing failed:", e);
 			console.log("Problematic JSON:", safeJSON);
 		}
-		stopButton.style.display = "none";
+		
 	}
 	populatePlots = async function () {
 		//console.log("Entering populatePlots function");
@@ -777,7 +935,7 @@
 		}
 
 		console.log("plots length:", plots.length);
-		stopButton.style.display = "none";
+		
 
 		for (let i = 0; i < plots.length; i++) {
 			const plot = plots[i];			
@@ -821,28 +979,33 @@
 				<div class="accordion-body rounded">
 					<div class="row g-3">
 						<div class="col-md-12">
-							<h6 class="">Core Idea</h6>
+							<label class="">Core Idea</label>
 							<textarea class="form-control text-area coreIdea" ${makeEditable}>${plot.plot.core_idea}</textarea>
 						</div>
 
 						<div class="col-md-6">
-							<h6 class="">Protagonist</h6>
+							<label class="">Protagonist</label>
 							<textarea class="form-control text-area protagonist">${plot.plot.protagonist}</textarea>
 						</div>
 
 						<div class="col-md-6">
-							<h6 class="">Conflict</h6>
+							<label class="">Conflict</label>
 							<textarea class="form-control text-area conflict">${plot.plot.conflict}</textarea>
 						</div>
 
 						<div class="col-md-6">
-							<h6 class="">Stakes</h6>
+							<label class="">Stakes</label>
 							<textarea class="form-control text-area stakes">${plot.plot.stakes}</textarea>
 						</div>
 
 						<div class="col-12">
-							<h6 class="">Direction</h6>
+							<label class="">Direction</label>
 							<textarea class="form-control text-area direction">${plot.plot.direction}</textarea>
+						</div>
+
+						<div class="col-12">
+							<label class="">Rough Story Timeline</label>
+							<textarea class="form-control text-area roughStoryTimeline">${plot.plot.rough_story_timeline}</textarea>
 						</div>
 
 					</div>
@@ -872,6 +1035,7 @@
 		const conflict= card.querySelector(".conflict").value;
 		const stakes= card.querySelector(".stakes").value;
 		const direction= card.querySelector(".direction").value;
+		const rough_story_timeline= card.querySelector(".roughStoryTimeline").value;
 
 		const selectedPlot = document.querySelector("#selectedPlot");
 		selectedPlot.querySelector("#sel_coreIdea").value = core_idea;
@@ -879,7 +1043,7 @@
 		selectedPlot.querySelector("#sel_conflict").value = conflict;
 		selectedPlot.querySelector("#sel_stakes").value = stakes;
 		selectedPlot.querySelector("#sel_direction").value = direction;
-
+		selectedPlot.querySelector("#sel_roughStoryTimeline").value = rough_story_timeline;
 
 		fetch('/update_session', {
 			method: 'POST',
@@ -893,12 +1057,12 @@
 		});
 	}
 
-	function rejectPlot(i) {
+	async function rejectPlot(i) {
 		const plotId = i.dataset.id;
 		// 🔥 remove from UI
 		const card = i.closest(".accordion-item");
 		if (card) card.remove();
-		fetch('/update_session', {
+		await fetch('/update_session', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -908,6 +1072,7 @@
 				rejected_plot_id: plotId
 			})
 		});
+		await loadPlots();
 	}
 
 	async function rejectStoryDraft(i) {
@@ -933,36 +1098,6 @@
 	if (useCachedPlots) {
 		sendDataToLLM();
 	}
-
-	stopGeneration = async function () {
-
-		// stop frontend
-		if (controller) {
-			controller.abort();
-		}
-
-		// spam check
-		if (!currentRequestId) return;
-
-		// 🔥 stop backend
-		if (currentRequestId) {
-			await fetch("/stop_generation", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({
-					request_id: currentRequestId
-				})
-			});
-		}
-		// 🔥 FULL RESET
-		currentRequestId = null;
-		plotsTextfromAI = "";
-
-		aiOutput.innerHTML = "";
-		stopButton.style.display = "none";
-	};
 
 	const fontSelect = document.getElementById("font");
 	const fontSizeSelect = document.getElementById("fontSize");
@@ -1015,5 +1150,9 @@
 
 
 	
+</script>
+
+<script>
+	createModal("<h1>This is a modal</h1>");
 </script>
 {% endblock %}

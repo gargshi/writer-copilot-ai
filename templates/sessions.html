@@ -4,26 +4,38 @@
 {% block title %}Sessions - Writer Copilot AI{% endblock %}
 
 {% block content %}
-<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
-<!-- <style>
-  body {
-    background-color: #f2f2f7;
-    /* iOS system background */
-    font-family:'Arial', Tahoma, Geneva, Verdana, sans-serif;
-    color: #1d1d1f;
-    /* Apple's primary text color */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+<style>
+  .modal-header, .modal-footer {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-light);
   }
-</style> -->
 
+  [data-theme="dark"] .btn-close {
+    filter: invert(1) brightness(200%);
+  }
 
+  .modal-body {
+    background-color: var(--bg-card);
+  }
+
+  .modal-content {
+    border: 1px solid var(--border-light);
+  }
+
+  .modal{
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+</style>
 <div class="container">
 
   <!-- Top Row: Title -->
   <div class="page-header">
-    <h1>Story Sessions</h1>
-    <p class="lead">Manage your writing sessions and progress</p>
+    <h1>🖊 Writer's Copilot</h1>
+    <hr>
+    <h2>Your Writing Sessions</h2>
+    <p class="mt-4">Manage your writing sessions and progress</p>
   </div>
   <div class="row mt-4">
     <!-- Sidebar -->
@@ -77,7 +89,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="button" class="btn btn-danger" onclick="closeModal()">Cancel</button>
           <button type="submit" class="btn btn-warning">Update Session</button>
         </div>
       </form>
@@ -110,30 +122,22 @@
 
             col.innerHTML = `
               <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">                  
+                  <label class="card-text">${session.session_name} - ${timeAgo(session.timestamp) || 'Just now'}</label>
+                </div>
                 <div class="card-body d-flex flex-column">
-
-                  <h5 class="card-title">${session.session_name}</h5>
-
-                  <p class="card-text flex-grow-1">
+                  <p class="card-text flex-grow-1">                    
                     ${session.session_description.slice(0, 50) + (session.session_description.length > 50 ? '...' : '') || 'No description'}
                   </p>
 
-                  <small class="card-text">
-                    Created: ${session.timestamp}
-                  </small>
-
-                  <small class=" d-block mb-2">
-                    ID: ${session.session_id}
-                  </small>
-
                   <div class="d-flex justify-content-between mt-auto">
 
-                    <a href="/session/${session.session_id}" class="btn btn-sm btn-outline-primary">
+                    <a href="/session/${session.session_id}" class="btn btn-sm btn-primary">
                       Open
                     </a>
 
                     <div>
-                      <button class="btn btn-sm btn-outline-warning edit-session"
+                      <button class="btn btn-sm btn-warning edit-session"
                         data-id="${session.session_id}"
                         data-name="${session.session_name}"
                         data-desc="${session.session_description}"
@@ -141,7 +145,7 @@
                         Edit
                       </button>
 
-                      <button class="btn btn-sm btn-outline-danger delete-session"
+                      <button class="btn btn-sm btn-danger delete-session"
                         data-id="${session.session_id}"
                         data-timestamp="${session.timestamp}">
                         Delete
@@ -219,5 +223,10 @@
       closeModal();
     }
   });
+
+  function closeModal() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+    modal.hide();
+  }
 </script>
 {% endblock %}

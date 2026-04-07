@@ -121,8 +121,10 @@ def update_session():
 					"protagonist": data['protagonist'],
 					"conflict": data['conflict'],
 					"stakes": data['stakes'],
-					"direction": data['direction']
+					"direction": data['direction'],
+					"rough_story_timeline": data['roughStoryTimeline'],
 				},
+				"draft_title": data['storyTitle'],
 				"story": data['story'],
 			})
 
@@ -233,20 +235,20 @@ def delete_session():
 	return jsonify({"status": "success"})
 
 
-@app.route('/save_story', methods=['POST'])
-def save_story():
-	data = request.get_json()
-	directory = os.getenv("DRAFT_FOLDER_NAME")
-	timestamp = str(int(round(time.time() * 1000)))
-	create_draft_directory(directory)
-	filename = f"story_{timestamp}.txt"
-	filepath = os.path.join(directory, filename)
+# @app.route('/save_story', methods=['POST'])
+# def save_story():
+# 	data = request.get_json()
+# 	directory = os.getenv("DRAFT_FOLDER_NAME")
+# 	timestamp = str(int(round(time.time() * 1000)))
+# 	create_draft_directory(directory)
+# 	filename = f"story_{timestamp}.txt"
+# 	filepath = os.path.join(directory, filename)
 
-	with open(filepath, 'w') as f:
-		f.write(data['story'])
-	if not os.path.exists(f'{directory}/story_{timestamp}.txt'):
-		return jsonify({"status": "error", "message": "Failed to save story"})
-	return jsonify({"status": "success"})
+# 	with open(filepath, 'w') as f:
+# 		f.write(data['story'])
+# 	if not os.path.exists(f'{directory}/story_{timestamp}.txt'):
+# 		return jsonify({"status": "error", "message": "Failed to save story"})
+# 	return jsonify({"status": "success"})
 
 @app.route('/get_plots', methods=['GET'])
 def get_plots():
@@ -341,6 +343,7 @@ def give_data_to_llm():
 						- conflict: central struggle
 						- stakes: what is at risk
 						- direction: where the story is heading
+						- rough_story_timeline: a brief outline of the story's progression from start to finish
 
 						Requirements:
 						- All plotlines must be clearly different
@@ -366,7 +369,8 @@ def give_data_to_llm():
 								"protagonist": "string",
 								"conflict": "string",
 								"stakes": "string",
-								"direction": "string"
+								"direction": "string",
+								"rough_story_timeline": "string"
 						}}
 						]
 
@@ -383,6 +387,12 @@ def give_data_to_llm():
 						- Titles MUST be sequential: "Plotline 1", "Plotline 2", ..., "Plotline {data["noOfPlots"]}"
 						- Generate EXACTLY {data["noOfPlots"]} objects (no more, no less)
 						- Do not truncate output
+
+						Quality Rules:
+						- Avoid repetition of ideas or phrases
+						- Each paragraph MUST introduce new information or escalation
+						- Prefer specific, observable details over abstract statements
+						- Replace vague phrases like "something was wrong" with concrete anomalies
 				"""
 	elif data['generate'] == "story":
 		prompt = f"""
@@ -397,6 +407,7 @@ def give_data_to_llm():
 						- You MUST NOT introduce unrelated characters unless logically required
 						- You MUST preserve the tone and conflict described
 						- Expand the given idea into a full storyline without altering its essence
+						- Do not deviate from the Rough story timeline provided, but feel free to fill in creative details
 
 						Inputs:
 						Main conflict: {data["mainConflict"]}
@@ -408,6 +419,7 @@ def give_data_to_llm():
 						Words to Generate: {data["wordsToGenerate"]}
 						Story Type: {data["storyType"]}
 						Narration Style: {data["storyPerson"]}
+						Rough story timeline: {data["roughStoryTimeline"]}
 
 						Output:
 						Return ONLY a valid JSON object as per the schema below.
@@ -429,6 +441,37 @@ def give_data_to_llm():
 						- Do NOT include trailing commas
 						- Do NOT change input facts (names, places, roles)
 						- Do not truncate output
+
+						Scene Fidelity Rules (MANDATORY):
+						- The opening scene MUST begin EXACTLY in the location described in "Opening scene"
+						- The first paragraph MUST visually establish the environment before introducing external events
+						- The inciting anomaly MUST occur within the scene, not outside it
+						- DO NOT jump to news, aftermath, or large-scale consequences in the first scene
+
+						Causality Rules:
+						- The story MUST establish a clear cause-effect link between the protagonist's work and the central conflict
+						- If the link is unknown, it MUST be hinted at within the scene
+						- The reader should feel "this is where it started"
+
+						Pacing Rules:
+						- Focus ONLY on the first critical moment
+						- Do NOT resolve the conflict
+						- Do NOT escalate to global stakes yet
+						- Build tension through observation → anomaly → realization
+
+						Quality Rules:
+						- Avoid repetition of ideas or phrases
+						- Each paragraph MUST introduce new information or escalation
+						- Prefer specific, observable details over abstract statements
+						- Replace vague phrases like "something was wrong" with concrete anomalies
+
+						Self-Check (MANDATORY before final output):
+						- Does the scene start in the correct location?
+						- Is there a clear cause-effect progression?
+						- Is there any contradiction in character decisions?
+						- Is the pacing limited to a single scene?
+
+						If any answer is NO, revise before output.
 				"""
 	elif data['generate'] == "continue":
 		prompt = f"""
@@ -444,6 +487,8 @@ def give_data_to_llm():
 			- You MUST maintain character consistency (names, traits, roles)
 			- You MUST NOT introduce contradictions
 			- You MAY introduce new elements ONLY if they logically follow
+			- You MUST NOT deviate from the Rough story timeline provided.
+			- You MUST maintain conherence with the plot and rough story timeline provided.
 
 			Inputs:
 			Story so far:
@@ -452,6 +497,7 @@ def give_data_to_llm():
 			Words to Generate: {data["wordsToGenerate"]}
 			Story Type: {data["storyType"]}
 			Narration Style: {data["storyPerson"]}
+			Rough story timeline: {data["roughStoryTimeline"]}
 
 			Output:
 			Return ONLY a valid JSON object as per the schema below.
@@ -471,6 +517,36 @@ def give_data_to_llm():
 			- Do NOT repeat previous story unless necessary for flow
 			- Continue directly from the last sentence
 			- Do not truncate output
+
+			Continuity Rules (MANDATORY):
+			- You MUST preserve:
+			- current physical setting
+			- last active action in progress
+			- emotional state of protagonist
+			- You MUST continue from the EXACT last action, not general situation
+			- The next paragraph must directly follow the last sentence logically
+
+			Quality Rules:
+			- Avoid repetition of ideas or phrases
+			- Each paragraph MUST introduce new information or escalation
+			- Prefer specific, observable details over abstract statements
+			- Replace vague phrases like "something was wrong" with concrete anomalies
+
+			Self-Check (MANDATORY before final output):
+			- Does the scene start in the correct location?
+			- Is there a clear cause-effect progression?
+			- Is there any contradiction in character decisions?
+			- Is the pacing limited to a single scene?
+
+			If any answer is NO, revise before output.
+
+			Before writing, internally identify:
+			- last action taken
+			- immediate consequence
+			- next logical action
+
+			Then continue.
+
 		"""
 	return llm_prompt(prompt, show_think=True)
 

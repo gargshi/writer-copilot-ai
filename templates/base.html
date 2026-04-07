@@ -573,7 +573,86 @@
 			color: var(--text-primary);
 			margin-left: 10px;
 			min-width: 40px;
-		}		
+		}
+		.modal-content {
+			background-color: var(--bg-card);
+			color: var(--text-primary);
+			border: 1px solid var(--border-color);
+			border-radius: 12px;
+		}
+
+		.modal-header,
+		.modal-footer {
+			background-color: var(--bg-card);
+			border-color: var(--border-color);
+		}
+
+		.modal-header .btn-close {
+			filter: invert(0);
+		}
+
+		/* Dark mode fix for close button */
+		[data-theme="dark"] .modal-header .btn-close {
+			filter: invert(1);
+		}
+
+		/* Optional: softer backdrop for dark mode */
+		.modal-backdrop.show {
+			opacity: 0.6;
+		}
+
+		.draft-story{
+			height: 200px;
+		}
+		.draft-card {
+			padding: 16px;
+			border: 1px solid var(--border-light);
+			border-radius: 14px;
+			background: var(--bg-card);
+			box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+			margin: 10px 0;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.draft-card:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+		}
+
+		.draft-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.draft-title {
+			margin: 0;
+			font-size: 1rem;
+			font-weight: 600;
+		}
+
+		.draft-time {
+			font-size: 0.8rem;
+			color: gray;
+		}
+
+		.draft-meta {
+			display: flex;
+			gap: 12px;
+			font-size: 0.85rem;
+			color: var(--text-secondary);
+			flex-wrap: wrap;
+		}
+
+		.draft-actions {
+			display: flex;
+			justify-content: space-between;
+			gap: 8px;
+		}
 	</style>
 
 
@@ -729,6 +808,146 @@
 			localStorage.setItem("dockX", dock.style.left);
 			localStorage.setItem("dockY", dock.style.top);
 		});		
+	</script>
+	<script>
+		function timeAgo(timestamp) {
+			const now = new Date();
+			const date = new Date(Number(timestamp)); // already in ms
+			const seconds = Math.floor((now - date) / 1000);
+
+			if (seconds < 5) return "Just now";
+
+			const intervals = [
+				{ label: "year", seconds: 31536000 },
+				{ label: "month", seconds: 2592000 },
+				{ label: "day", seconds: 86400 },
+				{ label: "hour", seconds: 3600 },
+				{ label: "minute", seconds: 60 },
+				{ label: "second", seconds: 1 }
+			];
+
+			for (const interval of intervals) {
+				const count = Math.floor(seconds / interval.seconds);
+				if (count >= 1) {
+					return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
+				}
+			}
+		}
+	</script>
+	<script>
+		function createModal(innerHTML, options = {}) {
+			const config = {
+				placement: "center", // center | top | bottom
+				size: "md", // sm | md | lg | xl | fullscreen
+				scrollable: false,
+				animation: true,
+				backdrop: true,
+				keyboard: true,
+				...options
+			};
+
+			// Create modal root
+			const modal = document.createElement("div");
+			modal.className = "modal fade";
+			modal.tabIndex = -1;
+
+			// Create dialog
+			const modalDialog = document.createElement("div");
+			modalDialog.className = "modal-dialog";
+
+			// 👉 Placement handling (clean way)
+			switch (config.placement) {
+				case "center":
+					modalDialog.classList.add("modal-dialog-centered");
+					break;
+
+				case "top":
+					modalDialog.style.marginTop = "1rem";
+					break;
+
+				case "bottom":
+					modalDialog.classList.add("modal-dialog-centered");
+					modalDialog.style.alignItems = "flex-end";
+					break;
+			}
+
+			// 👉 Size handling
+			const sizeMap = {
+				sm: "modal-sm",
+				lg: "modal-lg",
+				xl: "modal-xl",
+				fullscreen: "modal-fullscreen"
+			};
+
+			if (sizeMap[config.size]) {
+				modalDialog.classList.add(sizeMap[config.size]);
+			}
+
+			// 👉 Scrollable
+			if (config.scrollable) {
+				modalDialog.classList.add("modal-dialog-scrollable");
+			}
+
+			// Create content
+			const modalContent = document.createElement("div");
+			modalContent.className = "modal-content";
+			modalContent.className += " p-3"; // padding
+			modalContent.innerHTML = innerHTML;
+
+			// Assemble
+			modalDialog.appendChild(modalContent);
+			modal.appendChild(modalDialog);
+			document.body.appendChild(modal);
+
+			// Bootstrap init
+			const bsModal = new bootstrap.Modal(modal, {
+				backdrop: config.backdrop,
+				keyboard: config.keyboard
+			});
+
+			modal.setAttribute("role", "dialog");
+			modal.setAttribute("aria-modal", "true");
+
+
+
+			modal.addEventListener("shown.bs.modal", () => {
+				// Try to focus something meaningful inside
+				let focusTarget = modal.querySelector(
+					"[autofocus], textarea, input, button, [tabindex]:not([tabindex='-1'])"
+				);
+
+				if (!focusTarget) {
+					// fallback to modal itself
+					modal.setAttribute("tabindex", "-1");
+					focusTarget = modal;
+				}
+
+				focusTarget.focus();
+			});
+
+			// 👉 Optional animation
+			if (config.animation) {
+				modalContent.style.animation = "slideIn 0.3s ease";
+			}
+
+			//bsModal.show();
+
+			// Cleanup
+			const previouslyFocused = document.activeElement;
+
+			modal.addEventListener("hide.bs.modal", () => {
+				if (document.activeElement && modal.contains(document.activeElement)) {
+					document.activeElement.blur();
+				}
+			});
+
+			return {
+				el: modal,
+				instance: bsModal,
+				get: (selector) => modal.querySelector(selector),
+				close: () => bsModal.hide()
+			};
+		}
 	</script>
 	{% block scripts %}{% endblock %}
 </body>
