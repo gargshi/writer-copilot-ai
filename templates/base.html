@@ -9,21 +9,26 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 	<link
-	href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
-	rel="stylesheet">
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+		rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 	<style>
 		:root {
-			--bg-main: #f8f9fa; /* Softer light grey */
+			--bg-main: #f8f9fa;
+			/* Softer light grey */
 			--bg-card: #ffffff;
 			--bg-accent: #f0f4ff;
 			--text-primary: #1e293b;
 			--text-secondary: #64748b;
 			--border-light: #b9b9b9;
-			--primary: #6366f1; /* Indigo */
+			--primary: #6366f1;
+			/* Indigo */
 			--primary-hover: #4f46e5;
 			--accent-glow: rgba(99, 102, 241, 0.1);
 			--bg-input: #ffffff;
+			--btn-primary: #6366f1;
+			--btn-primary-hover: #211e57;
+			--bg-text-area: #fffac5;
 		}
 
 		[data-theme="dark"] {
@@ -36,16 +41,25 @@
 			--primary: #818cf8;
 			--primary-hover: #6366f1;
 			--bg-input: #0f172a;
+			--btn-primary: #6366f1;
+			--btn-primary-hover: #262270;
+			--bg-text-area: #292001;
 		}
 
 		/* ================= BASE ================= */
 
-		body {		
+		body {
 			background: var(--bg-main);
 			font-family: 'Inter', system-ui, -apple-system, sans-serif;
 			color: var(--text-primary);
 			line-height: 1.5;
-		}	
+		}
+
+		.container-fluid {
+			background-color: var(--bg-main);
+			min-height: 100vh;
+		}
+
 
 		h1,
 		h2,
@@ -55,16 +69,37 @@
 		h6 {
 			font-family: 'Plus Jakarta Sans', sans-serif;
 		}
-		/* ================= TYPOGRAPHY ================= */
-		h2.bold { font-size: 1.5rem; letter-spacing: -0.025em; color: var(--primary); }
-		h4 { font-weight: 700; color: var(--text-primary); margin-bottom: 1.5rem; }
-		.text-small { font-size: 0.75rem; opacity: 0.8; }
 
+		/* ================= TYPOGRAPHY ================= */
+		h2.bold {
+			font-size: 1.5rem;
+			letter-spacing: -0.025em;
+			color: var(--primary);
+		}
+
+		h4 {
+			font-weight: 700;
+			color: var(--text-primary);
+			margin-bottom: 1.5rem;
+		}
+
+		.text-small {
+			font-size: 0.75rem;
+			opacity: 0.8;
+		}
+
+		h2,
+		h4,
+		h5 {
+			color: var(--text-primary);
+			font-weight: 700;
+			letter-spacing: -0.02em;
+		}
 
 
 		/* ================= LAYOUT ================= */
 
-		.bordered {
+		/*.bordered {
 			background: var(--bg-card);
 			border: 1px solid var(--border-light);
 			border-radius: 12px;
@@ -72,6 +107,20 @@
 			margin-bottom: 24px;
 			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 			transition: transform 0.2s ease;
+		}*/
+
+		.bordered {
+			background: var(--bg-card);
+			border: 1px solid var(--border-light);
+			border-radius: 12px;
+			padding: 1rem;
+			margin-bottom: 1.5rem;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+			transition: box-shadow 0.3s ease;
+		}
+
+		.bordered:hover {
+			box-shadow: 0 4px 12px rgb(104, 105, 142);
 		}
 
 		.nav-btn {
@@ -84,6 +133,7 @@
 			border-radius: 8px;
 			transition: all 0.2s;
 		}
+
 		.nav-btn:hover {
 			color: var(--primary);
 			background: var(--bg-accent);
@@ -93,23 +143,23 @@
 			display: flex;
 			flex-direction: column;
 			gap: 10px;
-			padding: 10px;			
+			padding: 10px;
 		}
 
-		.form-group input{
+		.form-group input {
 			background: var(--bg-input);
 			border: 1px solid var(--border-light);
 			border-radius: 8px;
 			padding: 10px;
 			color: var(--text-primary);
-		}		
+		}
 
 		.left-panel {
 			/*position: sticky;*/
 			top: 20px;
 			align-self: flex-start;
 			color: var(--text-primary);
-			
+
 		}
 
 		/* Scrollbar width */
@@ -183,7 +233,7 @@
 		.accordion-item {
 			border-radius: 10px;
 			overflow: hidden;
-			border: 1px solid var(--border-light);			
+			border: 1px solid var(--border-light);
 			background: var(--bg-card);
 			box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
 			margin-bottom: 8px;
@@ -204,7 +254,7 @@
 
 		.accordion-collapse {
 			border: none;
-		}		
+		}
 
 		.accordion-button {
 			padding: 10px 15px;
@@ -300,39 +350,16 @@
 		}
 
 		/* Selected Plot */
-		#selectedPlot {			
+		#selectedPlot {
 			padding: 20px;
 		}
-		.gen-story-panel{
+
+		.gen-story-panel {
 			padding: 20px;
 			gap: 10px;
 		}
 
-		/* Story Output */
-		#generatedStory {
-			line-height: 1.6;
-			
-			color: var(--text-primary);
-			background: var(--bg-card);
-			
-			border-radius: 10px;
-			padding: 20px;
-			resize: none;
-			/* optional */
-			transition: all 0.2s ease;
-			font-family: 'Georgia', serif; /* Better for reading long text */
-			font-size: 1.1rem;
-			line-height: 1.8;
-			padding: 30px;
-			border: 1px solid var(--border-light);
-			min-height: 600px;   
-		}
-
-		#generatedStory:focus {
-			outline: none;
-			border-color: var(--primary);
-			box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-		}
+		
 
 		/* AI Output */
 		#aiOutput {
@@ -345,6 +372,7 @@
 
 		.story-drafts {
 			font-size: 14px;
+			padding: 15px;
 		}
 
 		.story-drafts h5 {
@@ -355,21 +383,22 @@
 		.story-drafts>.card>.card-header {
 			padding: 10px 15px;
 			font-weight: bold;
-			border-bottom: 1px solid var(--border-light); /* subtle visible line */
+			border-bottom: 1px solid var(--border-light);
+			/* subtle visible line */
 		}
 
-		.card{
+		.card {
 			background: var(--bg-card);
 			color: var(--text-primary);
 			border-radius: 10px;
 			border: 1px solid var(--border-light);
-		} 
+		}
 
 		/* ================= FORMS & INPUTS ================= */
-		
+
 		.form-control {
 			border: 1px solid var(--border-light);
-			background-color: var(--bg-input) !important;
+			background-color: var(--bg-input);
 			color: var(--text-primary) !important;
 			border-radius: 10px;
 			padding: 12px;
@@ -388,14 +417,26 @@
 			letter-spacing: 0.05em;
 			color: var(--text-secondary);
 			margin-top: 10px;
-		}      
+		}
 
 		/* Custom Scrollbar */
-		::-webkit-scrollbar { width: 6px; }
-		::-webkit-scrollbar-track { background: transparent; }
-		::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-		::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-		
+		::-webkit-scrollbar {
+			width: 6px;
+		}
+
+		::-webkit-scrollbar-track {
+			background: transparent;
+		}
+
+		::-webkit-scrollbar-thumb {
+			background: #cbd5e1;
+			border-radius: 10px;
+		}
+
+		::-webkit-scrollbar-thumb:hover {
+			background: #94a3b8;
+		}
+
 		.dock-container {
 			position: fixed;
 			bottom: 20px;
@@ -422,10 +463,10 @@
 			display: flex;
 			align-items: center;
 			padding: 8px 15px;
-			background: rgba(255, 255, 255, 0.2);
-			-webkit-backdrop-filter: blur(15px) saturate(180%);
+			background: rgba(255, 255, 255, 0.9);
+			-webkit-backdrop-filter: blur(5px) saturate(180%);
 			backdrop-filter: blur(5px) saturate(50%);
-			border: var(--border-light);
+			border: 1px solid var(--border-light);
 			border-radius: 10px;
 			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 			justify-content: center;
@@ -434,24 +475,25 @@
 
 		/* Dark mode adjustment */
 		[data-theme="dark"] .glass-dock {
-			background: rgba(15, 23, 42, 0.4);
-			border: 1px solid rgba(0, 0, 0, 0.1);
+			background: rgba(15, 23, 42, 0.9);
+			border: 1px solid rgba(255, 255, 255, 0.601);
 		}
 
 		/* Individual items */
 		.dock-item {
-			width: fit-content;			
+			width: fit-content;
 			height: fit-content;
-			display: flex;			
+			display: flex;
 			align-items: center;
 			justify-content: center;
-			border-radius: 5px;			
+			border-radius: 5px;
 			font-size: 14px;
 			cursor: pointer;
 			transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 			position: relative;
 			padding: 5px 10px;
 			gap: 5px;
+			color: var(--text-primary);
 		}
 
 		/* Hover "Magnification" Effect */
@@ -460,7 +502,7 @@
 			margin: 0 10px;
 			background: var(--primary);
 			color: white;
-		}		
+		}
 
 		.dock-separator {
 			width: 1px;
@@ -482,9 +524,25 @@
 			align-items: baseline;
 			flex-direction: row;
 		}
-		.format-tools select{
+
+		.format-tools select {
 			padding: 0 10px;
+			color: var(--text-primary);
+			background-color: var(--bg-input);
 		}
+		.format-tools select:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+			background-color: var(--bg-input);
+		}
+		.format-tools select option {
+			padding: 0 10px;
+			color: var(--text-primary);
+			background-color: var(--bg-input);
+		}
+
+
 		body {
 			cursor: default;
 		}
@@ -511,10 +569,10 @@
 		}
 
 		#dragDockBtn:active {
-			cursor: grabbing;			
+			cursor: grabbing;
 		}
 
-		.theme-toggle{
+		.theme-toggle {
 			font-size: 14px;
 			cursor: pointer;
 		}
@@ -523,10 +581,10 @@
 		#fontSize {
 			-webkit-appearance: none;
 			appearance: none;
-			width: 150px;			
+			width: 150px;
 			border-radius: 0px;
 			background: transparent;
-			
+
 			outline: none;
 			transition: all 0.2s ease;
 		}
@@ -535,13 +593,11 @@
 		#fontSize::-webkit-slider-runnable-track {
 			height: 6px;
 			border-radius: 10px;
-			background: linear-gradient(
-				to right,
-				var(--primary) 0%,
-				var(--primary) var(--value, 50%),
-				var(--bg-accent) var(--value, 50%),
-				var(--bg-accent) 100%
-			);
+			background: linear-gradient(to right,
+					var(--primary) 0%,
+					var(--primary) var(--value, 50%),
+					var(--bg-accent) var(--value, 50%),
+					var(--bg-accent) 100%);
 		}
 
 		/* Thumb */
@@ -566,7 +622,7 @@
 		#fontSize:active::-webkit-slider-thumb {
 			transform: scale(1.3);
 			box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15);
-		}	
+		}
 
 		#fontSizeValue {
 			font-size: 14px;
@@ -574,6 +630,7 @@
 			margin-left: 10px;
 			min-width: 40px;
 		}
+
 		.modal-content {
 			background-color: var(--bg-card);
 			color: var(--text-primary);
@@ -601,16 +658,19 @@
 			opacity: 0.6;
 		}
 
-		.draft-story{
+		.draft-story {
 			height: 200px;
 		}
+
+
 		.draft-card {
 			padding: 16px;
 			border: 1px solid var(--border-light);
 			border-radius: 14px;
 			background: var(--bg-card);
-			box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-			margin: 10px 0;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+
 			cursor: pointer;
 			transition: all 0.2s ease;
 			display: flex;
@@ -620,7 +680,7 @@
 
 		.draft-card:hover {
 			transform: translateY(-2px);
-			box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+			box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 		}
 
 		.draft-header {
@@ -653,6 +713,45 @@
 			justify-content: space-between;
 			gap: 8px;
 		}
+
+		.btn {
+			border-radius: 8px;
+			padding: 2px 8px;
+			font-size: 14px;
+			font-weight: 500;
+			transition: all 0.2s ease;
+		}
+
+		.btn-primary {
+			background-color: var(--btn-primary);
+			border: 1px solid var(--btn-primary);
+		}
+
+		.btn-primary:hover {
+			background-color: var(--btn-primary-hover);
+			border: 1px solid var(--border-light);
+		}
+
+		/* Story Output */
+		textarea.form-control#generatedStory {
+			line-height: 1.5;			
+			background-color: var(--bg-text-area);
+			border-radius: 10px;
+			padding: 20px;
+			resize: none;
+			/* optional */
+			transition: all 0.2s ease;			
+			/* Better for reading long text */
+			font-size: 1.1rem;		
+			border: 1px solid var(--border-light);
+			min-height: 600px;
+		}
+
+		#generatedStory:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+		}
 	</style>
 
 
@@ -660,7 +759,7 @@
 </head>
 
 <body>
-	
+
 	{% with messages = get_flashed_messages(with_categories=true) %}
 	{% if messages %}
 	{% for category, message in messages %}
@@ -676,16 +775,16 @@
 	{% block content %}{% endblock %}
 	<div class="dock-container">
 		<nav class="glass-dock">
-			<a href="/" class="navbar-brand bold">🖊 Writer's Copilot</a>			
-			
+			<a href="/" class="navbar-brand bold">🖊 Writer's Copilot</a>
+
 			{% block navbar %}{% endblock %}
-			
-			
+
+
 			<div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark mode">
 				<i class="bi bi-moon" id="themeIcon"></i>
-				<span id="themeText"></span>				
+				<span id="themeText"></span>
 			</div>
-			<div title="Drag to reposition">				
+			<div title="Drag to reposition">
 				<button id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
 			</div>
 		</nav>
@@ -703,7 +802,7 @@
 				document.documentElement.removeAttribute("data-theme");
 				localStorage.setItem("theme", "light");
 				themeIcon.classList.remove("bi-moon");
-				themeIcon.classList.add("bi-sun");				
+				themeIcon.classList.add("bi-sun");
 				themeText.textContent = "Light Mode";
 			} else {
 				document.documentElement.setAttribute("data-theme", "dark");
@@ -723,16 +822,16 @@
 				themeIcon.classList.add("bi-moon");
 				themeText.textContent = "Dark Mode";
 			}
-			else {				
+			else {
 				themeIcon.classList.remove("bi-moon");
-				themeIcon.classList.add("bi-sun");				
+				themeIcon.classList.add("bi-sun");
 				themeText.textContent = "Light Mode";
 			}
 		})();
 	</script>
 	<script>
 		const dock = document.querySelector(".dock-container");
-		const dragBtn= dock.querySelector("#dragDockBtn");
+		const dragBtn = dock.querySelector("#dragDockBtn");
 
 		const resetDockPosition = () => {
 			localStorage.removeItem("dockX");
@@ -741,7 +840,7 @@
 			// Restore original CSS positioning
 			dock.style.left = "50%";
 			dock.style.top = "auto";
-			dock.style.bottom = "20px";
+			dock.style.bottom = "0px";
 			dock.style.transform = "translateX(-50%)";
 		};
 
@@ -749,7 +848,7 @@
 		if (window.innerWidth <= 768) {
 			alert("Mobile view detected - docking to bottom center");
 			setDefaultPosition();
-		}		
+		}
 
 		(function () {
 			const savedX = localStorage.getItem("dockX");
@@ -763,7 +862,7 @@
 			} else {
 				// Default centered bottom
 				dock.style.left = "50%";
-				dock.style.bottom = "20px";
+				dock.style.bottom = "0px";
 				dock.style.top = "auto";
 				dock.style.transform = "translateX(-50%)";
 			}
@@ -782,7 +881,7 @@
 			// 🔥 Lock current visual position BEFORE removing transform
 			dock.style.left = rect.left + "px";
 			dock.style.top = rect.top + "px";
-			dock.style.bottom = "auto";
+			dock.style.bottom = "auto"; // reset bottom to avoid conflicts
 			dock.style.transform = "none";
 
 			// Now calculate offsets

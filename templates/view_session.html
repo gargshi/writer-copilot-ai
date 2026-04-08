@@ -63,9 +63,9 @@
 		background-size: 20px;		
 	}	
 </style>
-<div class="container">
+<div class="container-fluid p-4">
 	<div class="row">
-		<div class="col-md-4 left-panel">
+		<div class="col-md-3 left-panel">
 			<div class="bordered">
 				<h2 class="bold">{{ session.session_name|upper }}</h2>
 				<hr>
@@ -123,44 +123,12 @@
 				</button>
 			</div>
 		</div>
-		<div class="col-md-8 right-panel">
-			
-			<div class="bordered" id="plots-section">
-				<h4>Plots</h4>
-				<hr>
-				
-				<!-- <div id="plots"></div> -->
-				<div class="accordion" id="plots"></div>
-			</div>
+		<div class="col-md-6 center-panel">
 			<div class="bordered" id="story-section">
 				<h4>Story</h4>
-				<hr>
-				<div class="form-group gap-10" id="selectedPlot">
-					<h5 class=" verdana">Selected Plot</h5>
-					<label>Core Idea</label>
-					<textarea class="form-control text-area" id="sel_coreIdea"
-						placeholder="What is the core idea?">${plot.core_idea}</textarea>
-					<label>Protagonist</label>
-					<textarea class="form-control text-area" id="sel_protagonist"
-						placeholder="Protagonist">${plot.protagonist}</textarea>
-					<label>Conflict</label>
-					<textarea class="form-control text-area" id="sel_conflict"
-						placeholder="Conflict">${plot.conflict}</textarea>
-					<label>Stakes</label>
-					<textarea class="form-control text-area" id="sel_stakes"
-						placeholder="Stakes">${plot.stakes}</textarea>
-					<label>Direction</label>
-					<textarea class="form-control text-area" id="sel_direction"
-						placeholder="Direction">${plot.direction}</textarea>
-					<label>Rough Story Timeline</label>
-					<textarea class="form-control text-area" id="sel_roughStoryTimeline"
-						placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
-					<button class="btn btn-primary genstorybtn"
-					onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
-				</div>
-				
+				<hr>			
 				<div class="row gen-story-panel">
-					<h5 class=" verdana">Generated Story</h5>
+					
 					<div class="col-md-12 mb-2">
 						<label for="storyTitle">Story Title</label>
 						<input type="text" class="form-control" id="storyTitle" placeholder="Story Title">
@@ -198,7 +166,10 @@
 							<i class="bi bi-clipboard"></i>
 							 Copy
 						</button>
-						
+						<button class="btn btn-primary" onclick="downloadStory()">
+							<i class="bi bi-download"></i>
+							Download
+						</button>						
 					</div>
 					
 					<div id="storyPlot">
@@ -210,9 +181,47 @@
 							<i class="bi bi-robot"></i>
 							Continue with AI
 						</button>
+						<button class="btn btn-secondary btn-sm" id="collapsePlotDetails" onclick="togglePlotDetails()">
+							<i class="bi bi-eye"></i> View Selected Plot
+						</button>
+					</div>
+				</div>
+				<div class="form-group" id="selectedPlot">										
+					<div class="sel-plot-details form-group" id="selectedPlotDetails">
+						<label>Core Idea</label>
+						<textarea class="form-control text-area" id="sel_coreIdea"
+							placeholder="What is the core idea?">${plot.core_idea}</textarea>
+						<label>Protagonist</label>
+						<textarea class="form-control text-area" id="sel_protagonist"
+							placeholder="Protagonist">${plot.protagonist}</textarea>
+						<label>Conflict</label>
+						<textarea class="form-control text-area" id="sel_conflict"
+							placeholder="Conflict">${plot.conflict}</textarea>
+						<label>Stakes</label>
+						<textarea class="form-control text-area" id="sel_stakes"
+							placeholder="Stakes">${plot.stakes}</textarea>
+						<label>Direction</label>
+						<textarea class="form-control text-area" id="sel_direction"
+							placeholder="Direction">${plot.direction}</textarea>
+						<label>Rough Story Timeline</label>
+						<textarea class="form-control text-area" id="sel_roughStoryTimeline"
+							placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
+						<button class="btn btn-primary genstorybtn"
+						onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
 					</div>
 				</div>
 			</div>
+		</div>
+		<div class="col-md-3 right-panel">
+			
+			<div class="bordered" id="plots-section">
+				<h4>Plots</h4>
+				<hr>
+				
+				<!-- <div id="plots"></div> -->
+				<div class="accordion" id="plots"></div>
+			</div>
+			
 			<div class="bordered" id="drafts-section">
 				<h4>Drafts</h4>
 				<hr>
@@ -225,6 +234,44 @@
 {% endblock %}
 {% block scripts %}
 <script>
+	const plotDetails = document.querySelector(".sel-plot-details");
+	let plotdetailsHeight = plotDetails.scrollHeight + "px"; // get natural height
+	plotDetails.style.overflow = "hidden"; // hide overflow for smooth collapse
+	plotDetails.style.height = "0px"; // start with details hidden
+	plotDetails.style.transition = "all 0.3s ease"; // smooth transition
+	function togglePlotDetails() {
+		
+		const collapseBtn = document.querySelector("#collapsePlotDetails");
+
+		if (plotDetails.style.height === "0px") {
+			plotDetails.style.height = plotdetailsHeight; // expand to show details
+			collapseBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Hide Selected Plot';
+			scrollToSection("selectedPlot");
+		} else {
+			plotDetails.style.height = "0px";
+			collapseBtn.innerHTML = '<i class="bi bi-eye"></i> View Selected Plot';
+		}
+	}
+
+	function downloadStory() {
+		const content = document.querySelector("#generatedStory").value; 
+		const title = document.getElementById("storyTitle").value || "my_story";
+		// or innerHTML if using rich editor
+
+		const blob = new Blob([content], { type: "text/plain" });
+
+		const url = URL.createObjectURL(blob);
+
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "story_" + title + ".txt";
+
+		document.body.appendChild(a);
+		a.click();
+
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	}
 
 	function copyToClipboard(elementId) {
 		const text = document.getElementById(elementId).value;
@@ -238,11 +285,14 @@
 	}
 	
 	function scrollToSection(id) {
-	const el = document.getElementById(id);
-	if (el) {
-			el.scrollIntoView({
-				behavior: "smooth",
-				block: "start"
+		const el = document.getElementById(id);
+		if (el) {
+			const yOffset = -20; // 10px space from top
+			const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+			window.scrollTo({
+				top: y,
+				behavior: "smooth"
 			});
 		}
 	}
@@ -396,30 +446,7 @@
 			console.log("User cancelled");
 		}
 	}
-
-	/*function createStoryDraftDiv(i, storyDraft) {
-		const div = document.createElement("div");
-		div.classList.add("text-justify");		
-		div.classList.add("m-2");
-		div.classList.add("mb-4");
-		div.classList.add("draft-card");	
-		
-		div.style.cursor = "pointer";
-		div.innerHTML = `
-			<div class="flex justify-content-end">
-				<h5 class="card-title">${storyDraft['draft_title'] || 'Untitled Draft'}</h5>
-			
-			
-				<p>Created: ${timeAgo(storyDraft['timestamp'])}</p>
-				<div class="card-footer">
-					<button class="btn btn-primary" onclick="useStoryDraft(${i})">Use Draft</button>
-					<button class="btn btn-danger" data-timestamp="${storyDraft['timestamp']}" onclick="rejectStoryDraft(this)">Delete Draft</button>
-				</div>
-			</div>
-		`;
-		
-		return div;
-	}*/
+	
 	function createStoryDraftDiv(i, storyDraft) {
 		const div = document.createElement("div");
 		div.className = "draft-card";
@@ -434,10 +461,10 @@
 				</span>
 			</div>
 
-			<div class="draft-meta">
+			<!-- <div class="draft-meta">
 				<span>Protagonist: ${storyDraft.plot?.protagonist || "—"}</span>
 				<span>Conflict: ${storyDraft.plot?.conflict || "—"}</span>
-			</div>
+			</div> -->
 
 			<div class="draft-actions">
 				<button class="btn btn-sm btn-primary use-btn">
