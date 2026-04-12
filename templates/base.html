@@ -29,10 +29,11 @@
 			--btn-primary: #6366f1;
 			--btn-primary-hover: #211e57;
 			--bg-text-area: #fffac5;
+			--bg-btn-dark: #1f1f20;
 		}
 
-		[data-theme="dark"] {
-			--bg-main: #0f172a;
+		[data-theme="dark-blue"] {
+			--bg-main: #10192e;
 			--bg-card: #1e293b;
 			--bg-accent: #334155;
 			--text-primary: #f1f5f9;
@@ -44,6 +45,41 @@
 			--btn-primary: #6366f1;
 			--btn-primary-hover: #262270;
 			--bg-text-area: #292001;
+			--bg-btn-dark: #000000;
+		}
+
+		[data-theme="dark"] {
+			--bg-main: #000000;
+			/* pure black */
+			--bg-card: #262626;
+			/* slight elevation */
+			--bg-accent: #484848;
+			/* subtle contrast */
+
+			--text-primary: #ffffff;
+			/* pure white */
+			--text-secondary: #a1a1a1;
+			/* soft gray */
+
+			--border-light: #535353;
+			/* subtle borders */
+
+			--primary: #e5e5e5;
+			/* light gray instead of blue */
+			--primary-hover: #ffffff;
+			/* hover = brighter */
+
+			--bg-input: #3a3a3a;
+			/* deep input background */
+			--bg-text-area: #3a3a3a;
+			/* textarea slightly lifted */
+
+			--btn-primary: #585858;
+			/* light button */
+			--btn-primary-hover: #000000;
+
+			--bg-btn-dark: #000000;
+			/* true dark button */
 		}
 
 		/* ================= BASE ================= */
@@ -53,6 +89,7 @@
 			font-family: 'Inter', system-ui, -apple-system, sans-serif;
 			color: var(--text-primary);
 			line-height: 1.5;
+			cursor: default;
 		}
 
 		.container-fluid {
@@ -120,7 +157,7 @@
 		}
 
 		.bordered:hover {
-			box-shadow: 0 4px 12px rgb(104, 105, 142);
+			box-shadow: 0 2px 2px rgb(104, 105, 142);
 		}
 
 		.nav-btn {
@@ -240,12 +277,19 @@
 			border-radius: 8px !important;
 		}
 
+		.alert {
+			font-size: 14px;
+		}
+
 		.accordion-button {
+			padding: 10px 15px;
+			font-size: 14px;
+			font-weight: 600;
 			box-shadow: none;
 			border: none;
 			background: var(--bg-card) !important;
 			color: var(--text-primary) !important;
-			font-weight: 600;
+			transition: all 0.2s ease;
 		}
 
 		.accordion-button:focus {
@@ -256,39 +300,32 @@
 			border: none;
 		}
 
-		.accordion-button {
-			padding: 10px 15px;
-			font-size: 14px;
-			font-weight: 500;
-			transition: all 0.2s ease;
-		}
-
-		/* Open */
+		/* Open state */
 		.accordion-button:not(.collapsed) {
 			background: var(--bg-card);
-			color: var(--text-primary);
-			box-shadow: none;
 			color: var(--primary) !important;
+			box-shadow: none;
 		}
 
-		/* Closed */
+		/* Closed state */
 		.accordion-button.collapsed {
 			background: var(--bg-card);
 			color: var(--text-primary);
 		}
 
-		/* Hover */
+		/* Hover effect */
 		.accordion-button:hover {
 			font-weight: bolder;
 			transform: translateX(5px);
 			transition: all 0.4s ease;
 		}
 
-		/* Arrow */
+		/* Arrow styling - Open */
 		.accordion-button:not(.collapsed)::after {
 			filter: invert(1);
 		}
 
+		/* Arrow styling - Closed */
 		.accordion-button.collapsed::after {
 			filter: none;
 		}
@@ -316,22 +353,27 @@
 			color: var(--text-primary);
 		}
 
+		/* Story Output - Generated Story Textarea */
+		textarea.form-control#generatedStory {
+			line-height: 1.5;
+			background-color: var(--bg-text-area);
+			border-radius: 10px;
+			padding: 20px;
+			resize: none;
+			transition: all 0.2s ease;
+			font-size: 1.1rem;
+			border: 1px solid var(--border-light);
+			min-height: 600px;
+			cursor: pointer;
+		}
+
+		#generatedStory:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+		}
 
 		/* ================= BUTTONS ================= */
-
-		.btn {
-			padding: 4px 10px;
-			font-size: 15px;
-			border-radius: 6px;
-		}
-
-		.btn-primary {
-			background: var(--primary);
-		}
-
-		.btn-primary:hover {
-			background: var(--primary-hover);
-		}
 
 		.btn-success,
 		.btn-danger {
@@ -355,11 +397,12 @@
 		}
 
 		.gen-story-panel {
-			padding: 20px;
+			padding: 10px;
+			padding-top: 0px;
 			gap: 10px;
 		}
 
-		
+
 
 		/* AI Output */
 		#aiOutput {
@@ -408,7 +451,19 @@
 		.form-control:focus {
 			border-color: var(--primary);
 			box-shadow: 0 0 0 4px var(--accent-glow);
+			background-color: var(--bg-input);
+			color: var(--text-primary);
 		}
+
+		select.form-control {
+			padding: 8px;
+		}
+
+		input.form-control {
+			padding: 8px;
+		}
+
+
 
 		label {
 			font-weight: 600;
@@ -465,7 +520,7 @@
 			padding: 8px 15px;
 			background: rgba(255, 255, 255, 0.9);
 			-webkit-backdrop-filter: blur(5px) saturate(180%);
-			backdrop-filter: blur(5px) saturate(50%);
+			backdrop-filter: blur(5px) saturate(180%);
 			border: 1px solid var(--border-light);
 			border-radius: 10px;
 			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -476,6 +531,11 @@
 		/* Dark mode adjustment */
 		[data-theme="dark"] .glass-dock {
 			background: rgba(15, 23, 42, 0.9);
+			border: 1px solid rgba(255, 255, 255, 0.601);
+		}
+
+		[data-theme="dark-blue"] .glass-dock {
+			background: rgba(16, 25, 46, 0.9);
 			border: 1px solid rgba(255, 255, 255, 0.601);
 		}
 
@@ -500,7 +560,7 @@
 		.dock-item:hover {
 			transform: scale(1.1);
 			margin: 0 10px;
-			background: var(--primary);
+			background: var(--btn-primary);
 			color: white;
 		}
 
@@ -526,25 +586,32 @@
 		}
 
 		.format-tools select {
-			padding: 0 10px;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			appearance: none;
+			background: var(--bg-card);
 			color: var(--text-primary);
-			background-color: var(--bg-input);
+			border: gray 1px solid;
+			border-radius: 8px;
+			/*padding: 6px 30px 6px 10px;*/
+			padding: 6px 10px;
+			font-size: 14px;
+			cursor: pointer;
+			transition: all 0.2s ease;
 		}
+
+		/* Focus */
 		.format-tools select:focus {
-			outline: none;
-			border-color: var(--primary);
-			box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-			background-color: var(--bg-input);
+			border-color: var(--border-light);
+			box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.2);
+			background: var(--bg-card);
+			color: var(--text-primary);
 		}
+
 		.format-tools select option {
 			padding: 0 10px;
 			color: var(--text-primary);
 			background-color: var(--bg-input);
-		}
-
-
-		body {
-			cursor: default;
 		}
 
 		textarea,
@@ -552,6 +619,11 @@
 			cursor: text;
 			caret-color: var(--text-primary);
 			text-align: justify;
+		}
+
+		.text-area::placeholder,
+		input.form-control::placeholder {
+			color: var(--text-secondary);
 		}
 
 		#dragDockBtn {
@@ -640,8 +712,20 @@
 
 		.modal-header,
 		.modal-footer {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 1rem;
 			background-color: var(--bg-card);
-			border-color: var(--border-color);
+			border-color: var(--border-light);
+			border-bottom: 1px solid var(--border-light);
+		}
+
+		.modal-footer {
+			border-bottom: none;
+			border-top: 1px solid var(--border-light);
+			justify-content: flex-end;
+			gap: 0.5rem;
 		}
 
 		.modal-header .btn-close {
@@ -716,7 +800,7 @@
 
 		.btn {
 			border-radius: 8px;
-			padding: 2px 8px;
+			padding: 5px 8px;
 			font-size: 14px;
 			font-weight: 500;
 			transition: all 0.2s ease;
@@ -732,25 +816,69 @@
 			border: 1px solid var(--border-light);
 		}
 
-		/* Story Output */
-		textarea.form-control#generatedStory {
-			line-height: 1.5;			
-			background-color: var(--bg-text-area);
-			border-radius: 10px;
-			padding: 20px;
-			resize: none;
-			/* optional */
-			transition: all 0.2s ease;			
-			/* Better for reading long text */
-			font-size: 1.1rem;		
-			border: 1px solid var(--border-light);
-			min-height: 600px;
+		.theme-select {
+			position: relative;
+			min-width: 150px;
+			font-size: 13px;
+			cursor: pointer;
+			display: flex;
+			gap: 8px;
+			justify-content: center;
 		}
 
-		#generatedStory:focus {
-			outline: none;
-			border-color: var(--primary);
-			box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+		.theme-select .selected {
+			background: rgba(255,255,255,0.05);
+			color: var(--text-primary);
+			border: 1px solid var(--border-light);
+			padding: 6px 10px;
+			border-radius: 10px;
+			-webkit-backdrop-filter: blur(10px);
+			backdrop-filter: blur(10px);
+			transition: all 0.2s ease;			
+		}
+
+		.theme-select:hover .selected {
+			background: rgba(255,255,255,0.08);
+		}
+
+		/* Dropdown */
+		.theme-select .options {
+			position: absolute;
+			bottom: 120%;
+			left: 0;
+			width: 100%;
+			background: var(--bg-card);
+			border: 1px solid var(--border-light);
+			border-radius: 10px;
+			-webkit-backdrop-filter: blur(12px);
+			backdrop-filter: blur(12px);
+			display: none;
+			overflow: hidden;
+			z-index: 999;
+		}
+
+		.theme-select.open .options {
+			display: block;
+		}
+
+		.theme-select .options div {
+			padding: 8px 10px;
+			color: var(--text-primary);
+			transition: background 0.2s ease;
+		}
+
+		.theme-select .options div:hover {
+			background: var(--bg-accent);
+			border: 1px solid var(--border-light);
+			font-weight: 600;
+		}
+
+		.form-label.header {
+			font-size: 18px;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: var(--text-primary);
+			margin-top: 10px;
 		}
 	</style>
 
@@ -775,17 +903,26 @@
 	{% block content %}{% endblock %}
 	<div class="dock-container">
 		<nav class="glass-dock">
-			<a href="/" class="navbar-brand bold">🖊 Writer's Copilot</a>
+			<a href="/" class="navbar-brand bold">🖊 <span id="site-brand">Writer's Copilot</span></a>
 
 			{% block navbar %}{% endblock %}
 
 
-			<div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark mode">
-				<i class="bi bi-moon" id="themeIcon"></i>
-				<span id="themeText"></span>
+							
+			<div class="theme-select d-flex align-items-center" id="themeSelect">
+				<span>Theme</span>
+				<div class="selected">Dark</div>
+				<div class="options">
+					<div data-value="light">Light</div>
+					<div data-value="dark">Dark</div>
+					<div data-value="dark-blue">Dark Blue</div>
+				</div>
 			</div>
+			
+
+
 			<div title="Drag to reposition">
-				<button id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
+				<button title="Drag to reposition" id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
 			</div>
 		</nav>
 	</div>
@@ -794,39 +931,66 @@
 		integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
 		crossorigin="anonymous"></script>
 	<script>
-		const themeIcon = document.getElementById("themeIcon");
-		const themeText = document.getElementById("themeText");
-		function toggleTheme() {
-			const current = document.documentElement.getAttribute("data-theme");
-			if (current === "dark") {
-				document.documentElement.removeAttribute("data-theme");
-				localStorage.setItem("theme", "light");
-				themeIcon.classList.remove("bi-moon");
-				themeIcon.classList.add("bi-sun");
-				themeText.textContent = "Light Mode";
-			} else {
-				document.documentElement.setAttribute("data-theme", "dark");
-				localStorage.setItem("theme", "dark");
-				themeIcon.classList.remove("bi-sun");
-				themeIcon.classList.add("bi-moon");
-				themeText.textContent = "Dark Mode";
-			}
-		}
+		const themeSelect = document.getElementById("themeSelect");
+		const selected = themeSelect.querySelector(".selected");
+		const options = themeSelect.querySelector(".options");
 
-		// Load saved theme on page load
+		// Toggle dropdown
+		selected.onclick = () => {
+			themeSelect.classList.toggle("open");
+		};
+
+		// Select option
+		options.querySelectorAll("div").forEach(opt => {
+			opt.onclick = () => {
+				const value = opt.dataset.value;
+				const label = opt.innerText;
+
+				selected.innerText = label;
+				themeSelect.classList.remove("open");
+
+				// 🔥 Use your existing function
+				changeTheme(value);
+
+				// Save preference
+				localStorage.setItem("theme", value);
+			};
+		});
+
+		// Close on outside click
+		document.addEventListener("click", (e) => {
+			if (!themeSelect.contains(e.target)) {
+				themeSelect.classList.remove("open");
+			}
+		});
+		function changeTheme(theme) {		
+			document.documentElement.setAttribute("data-theme", theme);
+			localStorage.setItem("theme", theme);
+
+			// 🔥 Update UI label manually
+			const labels = {
+				"light": "Light",
+				"dark": "Dark",
+				"dark-blue": "Dark Blue"
+			};
+
+
+			const selected = themeSelect.querySelector(".selected");
+			if (selected) {
+				selected.innerText = labels[theme] || theme;
+			}
+			const options = themeSelect.querySelectorAll(".options div");
+
+			options.forEach(opt => {
+				opt.classList.remove("active");
+				if (opt.dataset.value === theme) {
+					opt.classList.add("active");
+				}
+			});
+		}
 		(function () {
-			const saved = localStorage.getItem("theme");
-			if (saved === "dark") {
-				document.documentElement.setAttribute("data-theme", "dark");
-				themeIcon.classList.remove("bi-sun");
-				themeIcon.classList.add("bi-moon");
-				themeText.textContent = "Dark Mode";
-			}
-			else {
-				themeIcon.classList.remove("bi-moon");
-				themeIcon.classList.add("bi-sun");
-				themeText.textContent = "Light Mode";
-			}
+			const saved = localStorage.getItem("theme") || "dark";
+			changeTheme(saved);
 		})();
 	</script>
 	<script>

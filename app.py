@@ -54,6 +54,8 @@ def create_key(key, session):
 def update_session():
 	try:
 		data = request.form
+		if not request.form:
+			data = request.get_json()
 		print(data)
 		sess_id = data['id']
 		print("Session id :", sess_id)
@@ -127,6 +129,46 @@ def update_session():
 				"draft_title": data['storyTitle'],
 				"story": data['story'],
 			})
+		
+		if 'mode' in fields and data['mode'] == "character":
+			print("Updating characters")
+			if 'add_char' in fields:
+				print("Adding character")
+				character = json.loads(data['add_char'])
+				session_dict['characters'].append({
+					"id": str(uuid.uuid4()),
+					"name": character['name'],
+					"role": character['role'],
+					"personality": character['personality'],
+					"description": character['description'],
+					"appearance": character['appearance'],
+					"background": character['background']
+				}) # add characters
+			elif 'delete_char_id' in fields:				
+				char_id = data['delete_char_id']
+				print("Character id to delete:", char_id)
+				session_dict['characters'] = [
+					c for c in session_dict['characters']
+					if c['id'] != char_id
+				]
+				print("Remaining characters:", session_dict['characters'])
+			elif 'update_char_id' in fields:
+				char_id = data['update_char_id']
+				character = json.loads(data['update_char'])
+				up_character = {
+					"id": char_id,
+					"name": character['name'],
+					"role": character['role'],
+					"personality": character['personality'],
+					"description": character['description'],
+					"appearance": character['appearance'],
+					"background": character['background']
+				}
+				session_dict['characters'] = [
+					c if c['id'] != char_id else up_character
+					for c in session_dict['characters']
+				]
+
 
 		with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'w') as f:
 			# convert session_dict to json
@@ -155,6 +197,7 @@ def create_session():
 			"used": "",
 			"saved": []
 		},
+		"characters": [],
 		"story_params": {
 			"mainConflict": "",
 			"protagonist": "",
@@ -234,22 +277,6 @@ def delete_session():
 		return jsonify({"status": "error", "message": str(e)})
 	return jsonify({"status": "success"})
 
-
-# @app.route('/save_story', methods=['POST'])
-# def save_story():
-# 	data = request.get_json()
-# 	directory = os.getenv("DRAFT_FOLDER_NAME")
-# 	timestamp = str(int(round(time.time() * 1000)))
-# 	create_draft_directory(directory)
-# 	filename = f"story_{timestamp}.txt"
-# 	filepath = os.path.join(directory, filename)
-
-# 	with open(filepath, 'w') as f:
-# 		f.write(data['story'])
-# 	if not os.path.exists(f'{directory}/story_{timestamp}.txt'):
-# 		return jsonify({"status": "error", "message": "Failed to save story"})
-# 	return jsonify({"status": "success"})
-
 @app.route('/get_plots', methods=['GET'])
 def get_plots():
 	sess_id = request.args.get('id')
@@ -266,64 +293,13 @@ def get_story_drafts():
 		session = json.load(f)
 	return jsonify({"status": "success", "story_drafts": session['generated_drafts']})
 
-# def get_first_line(directory, file):
-# 	filepath = os.path.join(directory, file)
-# 	with open(filepath) as f:
-# 		first_line = f.readline()
-# 	return first_line
-
-
-# @app.route('/get_drafts', methods=['GET'])
-# def get_drafts():
-# 	directory = os.getenv("DRAFT_FOLDER_NAME")
-# 	drafts = []
-# 	if not os.path.exists(directory):
-# 		return jsonify({"status": "error", "message": "No drafts found"})
-# 	for file in os.listdir(directory):
-# 		if file.endswith(".txt"):
-# 			drafts.append({
-# 				"name": file,
-# 				"content-short": get_first_line(directory, file),
-# 				"modified-at": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(f'{directory}/{file}'))),
-# 				"m-timestamp": os.path.getmtime(f'{directory}/{file}')
-# 			})
-# 			# sort the drafts by modified time
-# 			drafts.sort(key=lambda x: x["m-timestamp"], reverse=True)
-# 	return jsonify({"status": "success", "drafts": drafts})
-
-
-# @app.route('/get_story', methods=['POST'])
-# def get_story():
-# 	data = request.get_json()
-# 	# story_name = data['story_name']
-# 	# directory = os.getenv("DRAFT_FOLDER_NAME")
-# 	# story = open(f'{directory}/{story_name}').read()
-# 	story_name = secure_filename(data['story_name'])
-# 	directory = os.getenv("DRAFT_FOLDER_NAME")
-# 	filepath = os.path.join(directory, story_name)
-# 	with open(filepath) as f:
-# 		story = f.read()
-# 	return jsonify({"status": "success", "story": story})
-
-
-# @app.route('/delete_draft/<draft_name>', methods=['DELETE'])
-# def delete_draft(draft_name):
-# 	directory = os.getenv("DRAFT_FOLDER_NAME")
-# 	try:
-# 		# os.remove(f'{directory}/{draft_name}')
-# 		safe_name = secure_filename(draft_name)
-# 		filepath = os.path.join(directory, safe_name)
-# 		os.remove(filepath)
-# 		return jsonify({"status": "success"})
-# 	except OSError as e:
-# 		return jsonify({"status": "error", "message": str(e)})
-
-
-# def create_draft_directory(dir):
-# 	print("directory", dir)
-# 	if not os.path.exists(dir):
-# 		os.makedirs(dir)
-
+@app.route('/get_characters', methods=['GET'])
+def get_characters():
+	sess_id = request.args.get('id')
+	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+	with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
+		session = json.load(f)
+	return jsonify({"status": "success", "characters": session['characters']})
 
 @app.route('/send_data_to_llm', methods=['POST'])
 def give_data_to_llm():
@@ -551,20 +527,7 @@ def give_data_to_llm():
 	return llm_prompt(prompt, show_think=True)
 
 
-# @app.route('/continue_with_ai', methods=['POST'])
-# def continue_with_ai():
-# 	data = request.get_json()
-# 	prompt = f"""
-# 		Story till now: {data["storyTillNow"]}
 
-# 		Your task is to write the next scene of the story.
-# 		Write a compelling next scene and stay within the scope as defined in the parameters above.
-# 		If no word limit is defined GENERATE AROUND 300 WORDS ONLY.[THIS IS ESSENTIAL]
-
-# 		KEEP NOTE OF THE FOLLOWING:-
-# 		1. NO ABUSIVE LANGUAGE.
-# 		"""
-# 	return llm_prompt(prompt, show_think=True)
 
 
 def llm_prompt(prompt, show_think=False):
