@@ -325,6 +325,8 @@
 							placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
 						<button class="btn btn-primary genstorybtn"
 							onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
+						<button class="btn btn-primary gencharbtn"
+							onclick="sendDataToLLM(generate='character',el=this)">Generate Characters</button>
 					</div>
 				</div>
 			</div>
@@ -583,6 +585,10 @@
 			appearance: characterAppearance,
 			personality: characterPersonality
 		};
+		await send_char_to_backend(character);
+	}
+	async function send_char_to_backend(character)
+	{
 		console.log("Adding character:", character);
 		await fetch("/update_session", {
 			method: "POST",
@@ -608,6 +614,8 @@
 			}, 3000);
 		});
 	}
+
+	
 </script>
 <script>
 	const plotDetails = document.querySelector(".sel-plot-details");
@@ -729,6 +737,7 @@
 
 	const plotsDiv = document.getElementById("plots");
 	let plotsTextfromAI = "";
+	let charactersTextfromAI = "";
 	let useCachedPlots = !true;
 	let useTestData = !true;
 	let plots_frontend = [];
@@ -1148,16 +1157,33 @@
 					roughStoryTimeline: document.querySelector("#sel_roughStoryTimeline").value
 				};
 			}
+
+			if (generate === "character"){
+				let s = document.querySelector("#selectedPlot");
+				console.log("character");
+				return {
+					generate,
+					currentStory,
+					conflict: s.querySelector("#sel_conflict").value,
+					stakes: s.querySelector("#sel_stakes").value,
+					direction: s.querySelector("#sel_direction").value,					
+					roughStoryTimeline: s.querySelector("#sel_roughStoryTimeline").value
+				};
+			}
 		};
 
 		const handleChunk = (chunk) => {
 			if (generate === "plots") {
 				plotsTextfromAI += chunk;
 				aiOutput.innerHTML = plotsTextfromAI;
-			} else {
+			} else if (generate === "story" || generate === "continue") {
 				storyFromPlot += chunk;
 				aiOutput.innerHTML = storyFromPlot;
+			} else if (generate === "character") {
+				charactersTextfromAI += chunk;
+				aiOutput.innerHTML = charactersTextfromAI;
 			}
+
 			aiOutput.scrollTop = aiOutput.scrollHeight;
 		};
 
@@ -1211,6 +1237,7 @@
 				if (generate === "plots") await populatePlots();
 				else if (generate === "story") await populateStory();
 				else if (generate === "continue") await getContinuation();
+				else if (generate === "character") await populateCharacter();
 
 				success = true;
 
@@ -1223,6 +1250,55 @@
 			}
 		}
 	};
+
+	async function populateCharacter (){
+		const jsonMatch = charactersTextfromAI.match(/\[[\s\S]*\]/);
+
+		if (!jsonMatch) {
+			throw new Error("No valid JSON found");
+		}
+
+		let safeJSON = jsonMatch[0];
+
+		// 🔥 Clean control characters
+		safeJSON = safeJSON
+			.replace(/\n/g, "")
+			.replace(/\r/g, "")
+			.replace(/\t/g, " ");
+
+		try {
+			console.log(safeJSON);
+			const cleanedCharactersTextfromAI = JSON.parse(safeJSON);
+			for (var i = 0; i < cleanedCharactersTextfromAI.length; i++) {
+				let character = cleanedCharactersTextfromAI[i];
+				//charactersDiv.value += " " + character.replace(/\\n/g, "<br>");
+				console.log("Character received:", character);
+				/*const character = {
+					name: characterName,
+					description: characterDescription,
+					role: characterRole,
+					background: characterBackground,
+					appearance: characterAppearance,
+					personality: characterPersonality
+				};*/
+				/*
+					name: "Emily Wilson"
+					description: "A civilian who becomes embroiled in the conflict when her family is caught in the crossfire, serving as a catalyst for James' decision."
+					role: "Supporting Character"
+					background: "A college student who was visiting her family during the war, Emily becomes a symbol of the innocent lives lost due to the conflict."
+					appearance: "A young woman in her early 20s with long, curly hair and a wide-eyed expression."
+					personality: "Innocent, naive, and determined."
+				*/
+				await send_char_to_backend(character);
+			}
+
+		} catch (e) {
+			console.error("JSON parsing failed:", e);
+			console.log("Problematic JSON:", safeJSON);
+		}
+	}
+
+
 	getContinuation = async function () {
 		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
 
@@ -1537,9 +1613,5 @@
 
 
 
-</script>
-
-<script>
-	createModal("<h1>This is a modal</h1>");
 </script>
 {% endblock %}

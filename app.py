@@ -304,6 +304,7 @@ def get_characters():
 @app.route('/send_data_to_llm', methods=['POST'])
 def give_data_to_llm():
 	data = request.get_json()
+	print(data)
 	if not data:
 		return jsonify({"status": "error", "message": "No data provided"})
 	if data['generate'] == "plots":
@@ -524,6 +525,82 @@ def give_data_to_llm():
 			Then continue.
 
 		"""
+	elif data['generate'] == 'character':
+		conflict = data.get("conflict", "Unknown conflict")
+		stakes = data.get("stakes", "Unknown stakes")
+		direction = data.get("direction", "Unknown direction")
+		roughStoryTimeline = data.get("roughStoryTimeline", "Unknown timeline")
+		prompt = f"""
+			You are an expert character designer for narrative storytelling.
+
+			Task:
+			Generate a list of characters STRICTLY based on the provided plot.
+
+			You MUST assign roles dynamically based on the story (protagonist, antagonist, supporting, mentor, etc.).
+			Do NOT force generic roles — derive them from the plot context.
+
+			Requirements:
+			- Characters MUST feel grounded in the plot
+			- Each character must have a clear narrative purpose
+			- Avoid redundancy (no duplicate personalities or roles)
+			- Ensure diversity in behavior, motivation, and perspective
+			- Roles must emerge logically from conflict and stakes
+
+			Inputs:			
+			Conflict: {conflict}
+			Stakes: {stakes}
+			Direction: {direction}
+			Rough story timeline: {roughStoryTimeline}
+
+			Output:
+			Return ONLY a valid JSON array.
+
+			Schema (STRICT):
+			[
+			{{
+				"name": "string",
+				"role": "string",
+				"personality": "string",
+				"description": "string",
+				"appearance": "string",
+				"background": "string"
+			}}
+			]
+
+			Field rules:
+			- "role" MUST reflect story function (e.g., protagonist, antagonist, ally, mentor, rival, etc.)
+			- "personality" must describe behavioral traits (not backstory)
+			- "description" must explain what they do in the story
+			- "appearance" must be physical and visual only
+			- "background" must explain past relevant to current story
+
+			Critical Rules:
+			- Output ONLY JSON (no text before or after)
+			- Start with '[' and end with ']'
+			- Use double quotes for all keys and values
+			- Do NOT include trailing commas
+			- Do NOT return nested objects or arrays
+			- Do NOT include markdown or formatting
+
+			Narrative Integrity Rules:
+			- The protagonist MUST be present and consistent with input
+			- The antagonist MUST directly relate to the central conflict
+			- Supporting characters MUST connect to either protagonist or conflict
+			- Each character must influence the story direction
+
+			Quality Rules:
+			- Avoid vague traits like "mysterious" without context
+			- Prefer specific behavioral and visual details
+			- Ensure each character adds new narrative value
+
+			Self-check before output:
+			- Does each character serve a clear role?
+			- Are roles logically derived from the plot?
+			- Is there any redundancy?
+
+			If yes, refine before output.
+		"""
+
 	return llm_prompt(prompt, show_think=True)
 
 
