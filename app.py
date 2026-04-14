@@ -23,6 +23,27 @@ client = OpenAI(
 	api_key=os.getenv("LMSTUDIO_API_KEY")
 )
 
+PLOT_DIR=os.getenv("PLOT_FOLDER_NAME")
+DRAFTS_DIR=os.getenv("DRAFT_FOLDER_NAME")
+def create_plot_directory():
+	try:
+		current_dir = os.getcwd()
+		if not os.path.exists(os.path.join(current_dir, PLOT_DIR)):
+			os.makedirs(os.path.join(current_dir, PLOT_DIR))
+	except Exception as e:
+		print("Error : ",e)
+
+def create_drafts_directory():
+	try:
+		current_dir = os.getcwd()
+		drafts_dir = os.path.join(current_dir, DRAFTS_DIR)
+		if not os.path.exists(drafts_dir):
+			os.makedirs(drafts_dir)
+	except Exception as e:
+		print("Error : ",e)
+
+create_plot_directory()
+create_drafts_directory()
 
 app = Flask(__name__)
 active_generations = {}
@@ -56,7 +77,7 @@ def update_session():
 		data = request.form
 		if not request.form:
 			data = request.get_json()
-		print(data)
+		print("received_data",data)
 		sess_id = data['id']
 		print("Session id :", sess_id)
 		sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
@@ -64,6 +85,7 @@ def update_session():
 		with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
 			session_dict = json.load(f)
 		fields = data.keys()
+		print("fields",fields)
 		session_dict['session_name'] = data['name'] if 'name' in fields else session_dict['session_name']
 		session_dict['session_description'] = data['description'] if 'description' in fields else session_dict['session_description']
 		if 'story_params' not in session_dict.keys():
@@ -77,12 +99,10 @@ def update_session():
 		if 'used_plot_id' in fields:
 			session_dict['plots']['used'] = data['used_plot_id']
 
-		if 'save_plot_id' in fields:
-			if data['save_plot_id'] not in session_dict['plots']['saved']:
-				session_dict['plots']['saved'].append(data['save_plot_id'])
-
 		if 'available_plot' in fields:
+			print("""available plot""")
 			plot = json.loads(data['available_plot'])
+			print("fetched plot",plot)
 
 			# check duplicates based on content
 			exists = any(
@@ -91,10 +111,12 @@ def update_session():
 			)
 
 			if not exists:
-				session_dict['plots']['available'].append({
+				plot_dict={
 					"plot_id": str(uuid.uuid4()),  # convert to string
 					"plot": plot
-				})
+				}
+				session_dict['plots']['available'].append(plot_dict)
+				add_plot_to_directory(plot_dict)
 
 		if 'rejected_plot_id' in fields:
 			pid = data['rejected_plot_id']           
@@ -103,20 +125,24 @@ def update_session():
 				p for p in session_dict['plots']['available']
 				if p['plot_id'] != pid
 			]
+			delete_plot_in_directory(pid)
 
 			session_dict['plots']['used'] = "" if session_dict['plots']['used'] == pid else session_dict['plots']['used']
 		
-		if 'rejected_story_draft_timestamp' in fields:
-			did = data['rejected_story_draft_timestamp']
+		if 'rejected_story_draft_id' in fields:
+			did = data['rejected_story_draft_id']
 			print(did)
 			session_dict['generated_drafts'] = [
-				d for d in session_dict['generated_drafts']
-				if d['timestamp'] != did
+				draft_id for draft_id in session_dict['generated_drafts']
+				if draft_id != did
 			]
+			delete_draft_in_directory(did)			
 			print(session_dict['generated_drafts'])
 
 		if 'story' in fields:
-			session_dict['generated_drafts'].append({
+			draft_id=str(uuid.uuid4())
+			draft={
+				"draft_id":draft_id,
 				"timestamp": str(int(round(time.time() * 1000))),
 				"plot": {
 					"core_idea": data['core_idea'],
@@ -128,7 +154,9 @@ def update_session():
 				},
 				"draft_title": data['storyTitle'],
 				"story": data['story'],
-			})
+			}
+			session_dict['generated_drafts'].append(draft_id)
+			create_draft_in_directory(draft)
 		
 		if 'mode' in fields and data['mode'] == "character":
 			print("Updating characters")
@@ -217,6 +245,192 @@ def create_session():
 	flash("Session created successfully!", "success")
 	return redirect(url_for('sessions'))
 
+# Plot handling
+def add_plot_to_directory(plot):
+	try:
+		current_dir = os.getcwd()
+		with open(os.path.join(current_dir, PLOT_DIR, f'plot_{plot["plot_id"]}.json'), 'w') as f:
+			json.dump(plot, f)
+	except Exception as e:
+		print("Error : ",e)
+
+def fetch_plot_from_directory(plot_id):
+	try:
+		current_dir = os.getcwd()
+		with open(os.path.join(current_dir, PLOT_DIR, f'plot_{plot_id}.json'), 'r') as f:
+			plot = json.load(f)
+		return plot
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def update_plot_in_directory(plot_id, plot):
+	try:
+		current_dir = os.getcwd()
+		with open(os.path.join(current_dir, PLOT_DIR, f'plot_{plot_id}.json'), 'w') as f:
+			json.dump(plot, f)
+		return
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def get_all_plots():
+	try:
+		current_dir = os.getcwd()
+		plots = []
+		for file in os.listdir(os.path.join(current_dir, PLOT_DIR)):
+			with open(os.path.join(current_dir, PLOT_DIR, file), 'r') as f:
+				plot = json.load(f)
+				plots.append(plot)
+		return plots
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def delete_plot_in_directory(plot_id):
+	try:
+		current_dir = os.getcwd()
+		os.remove(os.path.join(current_dir, PLOT_DIR, f'plot_{plot_id}.json'))
+	except Exception as e:
+		print("Error : ",e)
+	return
+
+@app.route("/plots/", methods=['GET', 'POST'])
+def plot_handler():
+    try:
+        if request.method == 'GET':
+            plots = get_all_plots()
+            return jsonify(plots)
+
+        elif request.method == 'POST':
+            plot = request.json
+            add_plot_to_directory(plot)
+            return jsonify({"status": "created"})
+
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"status": "error"})
+
+@app.route("/plots/<plot_id>", methods=['PUT', 'DELETE'])
+def plot_detail_handler(plot_id):
+    try:
+        if request.method == 'PUT':
+            plot = request.json
+            update_plot_in_directory(plot_id, plot)
+            return jsonify({"status": "updated"})
+
+        elif request.method == 'DELETE':
+            delete_plot_in_directory(plot_id)
+            return jsonify({"status": "deleted"})
+
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"status": "error"})
+
+# Draft handling
+def create_draft_in_directory(draft):
+	try:
+		current_dir = os.getcwd()
+		if not os.path.exists(os.path.join(current_dir, DRAFTS_DIR)):
+			os.makedirs(os.path.join(current_dir, DRAFTS_DIR))
+		with open(os.path.join(current_dir, DRAFTS_DIR, f'draft_{draft["draft_id"]}.json'), 'w') as f:
+			json.dump(draft, f)
+	except Exception as e:
+		print("Error : ",e)
+
+def get_all_drafts():
+	try:
+		current_dir = os.getcwd()
+		drafts = []
+		for file in os.listdir(os.path.join(current_dir, DRAFTS_DIR)):
+			with open(os.path.join(current_dir, DRAFTS_DIR, file), 'r') as f:
+				draft = json.load(f)
+				drafts.append(draft)
+		return drafts
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def delete_draft_in_directory(draft_id):
+	try:
+		current_dir = os.getcwd()
+		filepath=os.path.join(current_dir, DRAFTS_DIR, f'draft_{draft_id}.json')
+		if os.path.exists(filepath):
+			os.remove(filepath)
+	except Exception as e:
+		print("Error : ",e)
+
+def fetch_draft_from_directory(draft_id):
+	try:
+		current_dir = os.getcwd()
+		filepath=os.path.join(current_dir, DRAFTS_DIR, f'draft_{draft_id}.json')
+		if not os.path.exists(filepath):
+			return
+		with open(filepath, 'r') as f:
+			draft = json.load(f)
+		return draft
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def update_draft_in_directory(draft_id, draft):
+	try:
+		current_dir = os.getcwd()
+		with open(os.path.join(current_dir, DRAFTS_DIR, f'draft_{draft_id}.json'), 'w') as f:
+			json.dump(draft, f)
+	except Exception as e:
+		print("Error : ",e)
+
+@app.route('/drafts/', methods=['GET','POST'])
+def drafts_handler():
+	try:
+		if request.method == 'POST':
+			draft = request.json
+			create_draft_in_directory(draft)
+			return jsonify({"status": "created"})
+		
+		elif request.method == 'GET':
+			if request.args.get('id'):
+				''' To get all drafts for a session '''
+				print("recieved id=",request.args.get('id'))
+				sess_id = request.args.get('id')
+				sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+				with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
+					session = json.load(f)
+				draft_ids=session['generated_drafts'] # get draft ids from session			
+				drafts = []
+				for draft_id in draft_ids:
+					draft = fetch_draft_from_directory(draft_id)
+					drafts.append(draft)
+				return jsonify({"status": "success", "drafts": drafts}) # return all drafts for a session
+			drafts = get_all_drafts()
+			return jsonify(drafts)
+
+	except Exception as e:
+		print("Error:", e)
+		return jsonify({"status": "error"})
+
+@app.route('/drafts/<draft_id>', methods=['GET','PUT', 'DELETE'])
+def draft_detail_handler(draft_id):
+	try:
+		if request.method == 'GET':
+			draft = fetch_draft_from_directory(draft_id)
+			return jsonify(draft)
+		
+		elif request.method == 'PUT':
+			draft = request.json
+			update_draft_in_directory(draft_id, draft)
+			return jsonify({"status": "updated"})
+		
+		elif request.method == 'DELETE':
+			delete_draft_in_directory(draft_id)
+			return jsonify({"status": "deleted"})
+
+	except Exception as e:
+		print("Error:", e)
+		return jsonify({"status": "error"})
+
+
 
 @app.route('/get_sessions', methods=['GET'])
 def get_sessions():
@@ -261,6 +475,12 @@ def view_session(id):
 				"plot": plots_from_session['available'][plot['plot_id']]
 			})
 
+	print(plots)
+	print("SESSION DATA")
+	print(session.keys())
+	print(len(session))
+	print("SESSION DATA-END")
+
 	return render_template('view_session.html', session=session, plots=plots)
 
 
@@ -285,12 +505,20 @@ def get_plots():
 		session = json.load(f)
 	return jsonify({"status": "success", "plots": session['plots']})
 
-@app.route('/get_story_drafts', methods=['GET'])
+#@app.route('/get_story_drafts', methods=['GET'])
 def get_story_drafts():
 	sess_id = request.args.get('id')
 	sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
 	with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
 		session = json.load(f)
+	drafts=[]
+	for draft in session['generated_drafts']:
+		fetched_draft=fetch_draft_from_directory(draft)
+		drafts.append({
+			"draft_id": draft['draft_id'],
+			"draft": draft['draft']
+		})
+				
 	return jsonify({"status": "success", "story_drafts": session['generated_drafts']})
 
 @app.route('/get_characters', methods=['GET'])
@@ -309,147 +537,155 @@ def give_data_to_llm():
 		return jsonify({"status": "error", "message": "No data provided"})
 	if data['generate'] == "plots":
 		prompt = f"""
-						You are an expert story architect.
+			You are an expert story architect.
 
-						Task:
-						Generate EXACTLY {data["noOfPlots"]} unique plotlines based on the inputs.
+			Task:
+			Generate EXACTLY {data["noOfPlots"]} unique plotlines based on the inputs.
 
-						Each plotline must contain:
-						- core_idea: 3–5 sentences describing the premise
-						- protagonist: who they are
-						- conflict: central struggle
-						- stakes: what is at risk
-						- direction: where the story is heading
-						- rough_story_timeline: a brief outline of the story's progression from start to finish
+			Each plotline must contain:
+			- core_idea: 3–5 sentences describing the premise
+			- protagonist: who they are
+			- conflict: central struggle
+			- stakes: what is at risk
+			- direction: where the story is heading
+			- rough_story_timeline: a brief outline of the story's progression from start to finish
 
-						Requirements:
-						- All plotlines must be clearly different
-						- Do not repeat or rephrase ideas
-						- Be imaginative but concise
-						- Fill missing details creatively
+			Requirements:
+			- All plotlines must be clearly different
+			- Do not repeat or rephrase ideas
+			- Be imaginative but concise
+			- Fill missing details creatively
 
-						Inputs:
-						Main conflict: {data["mainConflict"]}
-						Protagonist: {data["protagonist"]}
-						Opening scene: {data["openingScene"]}
-						Story Type: {data["storyType"]}
-						Narration Style: {data["storyPerson"]}
+			Inputs:
+			Main conflict: {data["mainConflict"]}
+			Protagonist: {data["protagonist"]}
+			Opening scene: {data["openingScene"]}
+			Story Type: {data["storyType"]}
+			Narration Style: {data["storyPerson"]}
 
-						Output:
-						Return ONLY a valid JSON array with EXACTLY {data["noOfPlots"]} objects.
+			Output:
+			Return ONLY a valid JSON array with EXACTLY {data["noOfPlots"]} objects.
 
-						Schema (STRICT):
-						[
-						{{
-								"title": "Plotline 1",
-								"core_idea": "string",
-								"protagonist": "string",
-								"conflict": "string",
-								"stakes": "string",
-								"direction": "string",
-								"rough_story_timeline": "string"
-						}}
-						]
+			Schema (STRICT):
+			[
+			{{
+					"title": "Plotline 1",
+					"core_idea": "string",
+					"protagonist": "string",
+					"conflict": "string",
+					"stakes": "string",
+					"direction": "string",
+					"rough_story_timeline": "string"
+			}}
+			]
 
-						Field constraints:
-						- All values MUST be plain strings
-						- Do NOT return nested objects or arrays
-						- Do NOT use lists, bullet points, or special formatting inside values
+			Field constraints:
+			- All values MUST be plain strings
+			- Do NOT return nested objects or arrays
+			- Do NOT use lists, bullet points, or special formatting inside values
 
-						Critical Rules:
-						- Output ONLY JSON (no text before or after)
-						- Start response with '[' and end with ']'
-						- Use double quotes for all keys and values
-						- Do NOT include trailing commas
-						- Titles MUST be sequential: "Plotline 1", "Plotline 2", ..., "Plotline {data["noOfPlots"]}"
-						- Generate EXACTLY {data["noOfPlots"]} objects (no more, no less)
-						- Do not truncate output
+			Critical Rules:
+			- Output ONLY JSON (no text before or after)
+			- Start response with '[' and end with ']'
+			- Use double quotes for all keys and values
+			- Do NOT include trailing commas
+			- Titles MUST be sequential: "Plotline 1", "Plotline 2", ..., "Plotline {data["noOfPlots"]}"
+			- Generate EXACTLY {data["noOfPlots"]} objects (no more, no less)
+			- Do not truncate output
 
-						Quality Rules:
-						- Avoid repetition of ideas or phrases
-						- Each paragraph MUST introduce new information or escalation
-						- Prefer specific, observable details over abstract statements
-						- Replace vague phrases like "something was wrong" with concrete anomalies
+			Quality Rules:
+			- Avoid repetition of ideas or phrases
+			- Each paragraph MUST introduce new information or escalation
+			- Prefer specific, observable details over abstract statements
+			- Replace vague phrases like "something was wrong" with concrete anomalies
 				"""
 	elif data['generate'] == "story":
 		prompt = f"""
-						You are an expert story architect.
+			You are an expert story architect.
 
-						Task:
-						Generate an opening story scene STRICTLY based on the provided inputs.
+			Task:
+			Generate an opening story scene STRICTLY based on the provided inputs.
 
-						Requirements:
-						- You MUST use the exact protagonist name provided
-						- You MUST NOT change character names, locations, or core premise
-						- You MUST NOT introduce unrelated characters unless logically required
-						- You MUST preserve the tone and conflict described
-						- Expand the given idea into a full storyline without altering its essence
-						- Do not deviate from the Rough story timeline provided, but feel free to fill in creative details
+			Requirements:
+			- You MUST use ONLY the characters provided in "Available Characters"
+			- You MUST use the exact protagonist name provided
+			- You MUST NOT create new named characters unless absolutely unavoidable (e.g., crowd, guard, etc. without naming them)
+			- If additional presence is needed, refer to them generically (e.g., "a guard", "a student")
+			- You MUST NOT change character names, roles, relationships, or traits
+			- You MUST preserve the tone, conflict, and direction described
+			- Expand the given idea into a full scene without altering its essence
+			- Stay faithful to the rough story timeline while enriching details
 
-						Inputs:
-						Main conflict: {data["mainConflict"]}
-						Protagonist: {data["protagonist"]}
-						Core idea: {data["core_idea"]}
-						conflict: {data["conflict"]}
-						stakes: {data["stakes"]}
-						direction: {data["direction"]}			
-						Words to Generate: {data["wordsToGenerate"]}
-						Story Type: {data["storyType"]}
-						Narration Style: {data["storyPerson"]}
-						Rough story timeline: {data["roughStoryTimeline"]}
+			Inputs:
+			Main conflict: {data["mainConflict"]}
+			Protagonist: {data["protagonist"]}
+			Core idea: {data["core_idea"]}
+			Conflict: {data["conflict"]}
+			Stakes: {data["stakes"]}
+			Direction: {data["direction"]}
+			Available Characters: {data["characters"]}
+			Words to Generate: {data["wordsToGenerate"]}
+			Story Type: {data["storyType"]}
+			Narration Style: {data["storyPerson"]}
+			Rough story timeline: {data["roughStoryTimeline"]}
 
-						Output:
-						Return ONLY a valid JSON object as per the schema below.
+			Output:
+			Return ONLY a valid JSON object as per the schema below.
 
-						Schema (STRICT):
-						{{
-								"story": "string"
-						}}
+			Schema (STRICT):
+			{{
+				"story": "string"
+			}}
 
-						Field constraints:
-						- All values MUST be plain strings
-						- Do NOT return nested objects or arrays
-						- Do NOT use lists, bullet points, or special formatting inside values
+			Field constraints:
+			- All values MUST be plain strings
+			- Do NOT return nested objects or arrays
+			- Do NOT use lists, bullet points, or special formatting inside values
 
-						Critical Rules:
-						- Output ONLY JSON (no text before or after)
-						- Start response with '{{' and end with '}}'
-						- Use double quotes for all keys and values
-						- Do NOT include trailing commas
-						- Do NOT change input facts (names, places, roles)
-						- Do not truncate output
+			Critical Rules:
+			- Output ONLY JSON (no text before or after)
+			- Start response with '{{' and end with '}}'
+			- Use double quotes for all keys and values
+			- Do NOT include trailing commas
+			- Do NOT change input facts (names, places, roles)
 
-						Scene Fidelity Rules (MANDATORY):
-						- The opening scene MUST begin EXACTLY in the location described in "Opening scene"
-						- The first paragraph MUST visually establish the environment before introducing external events
-						- The inciting anomaly MUST occur within the scene, not outside it
-						- DO NOT jump to news, aftermath, or large-scale consequences in the first scene
+			Scene Fidelity Rules (MANDATORY):
+			- The opening scene MUST begin EXACTLY in the location described in "Opening scene"
+			- The first paragraph MUST visually establish the environment before introducing events
+			- The inciting anomaly MUST occur within the scene
+			- DO NOT jump to news, aftermath, or large-scale consequences
 
-						Causality Rules:
-						- The story MUST establish a clear cause-effect link between the protagonist's work and the central conflict
-						- If the link is unknown, it MUST be hinted at within the scene
-						- The reader should feel "this is where it started"
+			Character Usage Rules (MANDATORY):
+			- The protagonist MUST appear in the scene
+			- At least one additional character from "Available Characters" SHOULD be used if contextually relevant
+			- Character actions MUST align with their defined traits/background
+			- Do NOT introduce contradictions in behavior
 
-						Pacing Rules:
-						- Focus ONLY on the first critical moment
-						- Do NOT resolve the conflict
-						- Do NOT escalate to global stakes yet
-						- Build tension through observation → anomaly → realization
+			Causality Rules:
+			- Establish a clear cause-effect link between the protagonist’s actions and the anomaly
+			- If unclear, subtly hint at the connection within the scene
 
-						Quality Rules:
-						- Avoid repetition of ideas or phrases
-						- Each paragraph MUST introduce new information or escalation
-						- Prefer specific, observable details over abstract statements
-						- Replace vague phrases like "something was wrong" with concrete anomalies
+			Pacing Rules:
+			- Focus ONLY on the first critical moment
+			- Do NOT resolve the conflict
+			- Do NOT escalate to global stakes
+			- Follow: observation → anomaly → realization
 
-						Self-Check (MANDATORY before final output):
-						- Does the scene start in the correct location?
-						- Is there a clear cause-effect progression?
-						- Is there any contradiction in character decisions?
-						- Is the pacing limited to a single scene?
+			Quality Rules:
+			- Avoid repetition
+			- Each paragraph MUST add new information or escalation
+			- Use concrete sensory details instead of vague statements
+			- Do NOT restate previously established information unless adding new insight
+			- Each paragraph MUST introduce new progression, not rephrasing
 
-						If any answer is NO, revise before output.
-				"""
+			Self-Check (MANDATORY before final output):
+			- Does the scene start in the correct location?
+			- Are ONLY provided characters used?
+			- Is there a clear cause-effect progression?
+			- Is pacing limited to a single scene?
+
+			If any answer is NO, revise before output.
+		"""
 	elif data['generate'] == "continue":
 		prompt = f"""
 			You are an expert story writer continuing an existing narrative.
@@ -463,13 +699,22 @@ def give_data_to_llm():
 			- You MUST preserve tone, pacing, and narrative style
 			- You MUST maintain character consistency (names, traits, roles)
 			- You MUST NOT introduce contradictions
-			- You MAY introduce new elements ONLY if they logically follow
-			- You MUST NOT deviate from the Rough story timeline provided.
-			- You MUST maintain conherence with the plot and rough story timeline provided.
+			- You MUST NOT deviate from the Rough story timeline provided
+			- You MUST maintain coherence with the existing plot
+
+			Character Rules (MANDATORY):
+			- You MUST use ONLY characters from "Available Characters"
+			- You MUST NOT introduce new named characters
+			- If additional presence is required, use generic references (e.g., "a guard", "a villager")
+			- Existing characters MUST behave according to their defined traits and roles
+			- You MUST NOT alter relationships or prior character developments
 
 			Inputs:
 			Story so far:
 			{data["currentStory"]}
+
+			Available Characters:
+			{data["characters"]}
 
 			Words to Generate: {data["wordsToGenerate"]}
 			Story Type: {data["storyType"]}
@@ -491,7 +736,7 @@ def give_data_to_llm():
 			Critical Rules:
 			- Output ONLY JSON (no text before or after)
 			- Start with '{{' and end with '}}'
-			- Do NOT repeat previous story unless necessary for flow
+			- Do NOT repeat previous story unless absolutely necessary for flow
 			- Continue directly from the last sentence
 			- Do not truncate output
 
@@ -500,24 +745,35 @@ def give_data_to_llm():
 			- current physical setting
 			- last active action in progress
 			- emotional state of protagonist
-			- You MUST continue from the EXACT last action, not general situation
-			- The next paragraph must directly follow the last sentence logically
+			- You MUST continue from the EXACT last action, not a general situation
+			- The first paragraph MUST directly follow the last sentence logically
+
+			Causality Rules:
+			- Every new action MUST be a direct consequence of the previous action
+			- No time skips unless explicitly implied in the last line
+			- Maintain tight cause-effect chaining
+
+			Pacing Rules:
+			- Continue within the SAME scene unless a transition is explicitly triggered
+			- Do NOT jump to resolution or large-scale consequences
+			- Build progression through: action → reaction → realization
 
 			Quality Rules:
-			- Avoid repetition of ideas or phrases
-			- Each paragraph MUST introduce new information or escalation
-			- Prefer specific, observable details over abstract statements
-			- Replace vague phrases like "something was wrong" with concrete anomalies
+			- Avoid repetition
+			- Each paragraph MUST introduce new movement, detail, or escalation
+			- Use concrete sensory details instead of vague phrasing
+			- Do NOT restate previously established information unless adding new insight
+			- Each paragraph MUST introduce new progression, not rephrasing
 
 			Self-Check (MANDATORY before final output):
-			- Does the scene start in the correct location?
-			- Is there a clear cause-effect progression?
-			- Is there any contradiction in character decisions?
-			- Is the pacing limited to a single scene?
+			- Are ONLY provided characters used?
+			- Does the continuation begin exactly where the last line ends?
+			- Is the cause-effect chain intact?
+			- Are character behaviors consistent?
 
 			If any answer is NO, revise before output.
 
-			Before writing, internally identify:
+			Before writing, internally determine:
 			- last action taken
 			- immediate consequence
 			- next logical action

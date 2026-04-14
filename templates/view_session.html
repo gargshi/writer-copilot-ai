@@ -8,6 +8,14 @@
 	<i class="bi bi-list"></i>
 	Plots
 </div>
+<div class="dock-item" onclick="scrollToSection('selected-plot-section')" title="Selected Plot">
+	<i class="bi bi-journal-text"></i>
+	<span>Selected Plot</span>
+</div>
+<div class="dock-item" onclick="scrollToSection('characters-section')" title="Drafts">
+	<i class="bi bi-people"></i>
+	Characters
+</div>
 <div class="dock-item" onclick="scrollToSection('story-section')" title="Story">
 	<i class="bi bi-book"></i>
 	Story
@@ -15,10 +23,6 @@
 <div class="dock-item" onclick="scrollToSection('drafts-section')" title="Drafts">
 	<i class="bi bi-archive"></i>
 	Drafts
-</div>
-<div class="dock-item" onclick="scrollToSection('characters-section')" title="Drafts">
-	<i class="bi bi-people"></i>
-	Characters
 </div>
 <!-- <div class="dock-item" onclick="scrollToSection('ai-section')" title="AI">
 		<i class="bi bi-robot"></i>
@@ -166,6 +170,33 @@
 					</div>
 				</div>
 			</div> -->
+			<div class="bordered" id="selected-plot-section">
+				<label class="form-label header"><i class="bi bi-journal-text"></i> Selected Plot</label>
+				<hr>
+				<div class="form-group" id="selectedPlot">
+					<label>Core Idea</label>
+					<textarea class="form-control text-area" id="sel_coreIdea"
+						placeholder="What is the core idea?">${plot.core_idea}</textarea>
+					<label>Protagonist</label>
+					<textarea class="form-control text-area" id="sel_protagonist"
+						placeholder="Protagonist">${plot.protagonist}</textarea>
+					<label>Conflict</label>
+					<textarea class="form-control text-area" id="sel_conflict"
+						placeholder="Conflict">${plot.conflict}</textarea>
+					<label>Stakes</label>
+					<textarea class="form-control text-area" id="sel_stakes"
+						placeholder="Stakes">${plot.stakes}</textarea>
+					<label>Direction</label>
+					<textarea class="form-control text-area" id="sel_direction"
+						placeholder="Direction">${plot.direction}</textarea>
+					<label>Rough Story Timeline</label>
+					<textarea class="form-control text-area" id="sel_roughStoryTimeline"
+						placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
+
+					<button class="btn btn-primary gencharbtn"
+						onclick="sendDataToLLM(generate='character',el=this)">Generate Characters</button>
+				</div>
+			</div>
 			<div class="bordered" id="characters-section">
 				<label class="form-label header"><i class="bi bi-people"></i> Characters</label>
 				<hr>
@@ -244,6 +275,8 @@
 			<div class="bordered" id="story-section">
 				<label class="form-label header"><i class="bi bi-book"></i> Story</label>
 				<hr>
+				<button class="btn btn-primary genstorybtn" onclick="sendDataToLLM(generate='story',el=this)">Generate
+					New Story</button>
 				<div class="row gen-story-panel">
 					<div class="col-md-12 mb-2">
 						<label for="storyTitle">Story Title</label>
@@ -298,37 +331,9 @@
 							<i class="bi bi-robot"></i>
 							Continue with AI
 						</button>
-						<button class="btn btn-secondary btn-sm" id="collapsePlotDetails" onclick="togglePlotDetails()">
-							<i class="bi bi-eye"></i> View Selected Plot
-						</button>
 					</div>
 				</div>
-				<div class="form-group" id="selectedPlot">
-					<div class="sel-plot-details form-group" id="selectedPlotDetails">
-						<label>Core Idea</label>
-						<textarea class="form-control text-area" id="sel_coreIdea"
-							placeholder="What is the core idea?">${plot.core_idea}</textarea>
-						<label>Protagonist</label>
-						<textarea class="form-control text-area" id="sel_protagonist"
-							placeholder="Protagonist">${plot.protagonist}</textarea>
-						<label>Conflict</label>
-						<textarea class="form-control text-area" id="sel_conflict"
-							placeholder="Conflict">${plot.conflict}</textarea>
-						<label>Stakes</label>
-						<textarea class="form-control text-area" id="sel_stakes"
-							placeholder="Stakes">${plot.stakes}</textarea>
-						<label>Direction</label>
-						<textarea class="form-control text-area" id="sel_direction"
-							placeholder="Direction">${plot.direction}</textarea>
-						<label>Rough Story Timeline</label>
-						<textarea class="form-control text-area" id="sel_roughStoryTimeline"
-							placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
-						<button class="btn btn-primary genstorybtn"
-							onclick="sendDataToLLM(generate='story',el=this)">Generate Story</button>
-						<button class="btn btn-primary gencharbtn"
-							onclick="sendDataToLLM(generate='character',el=this)">Generate Characters</button>
-					</div>
-				</div>
+
 			</div>
 		</div>
 		<div class="col-md-3 right-panel">
@@ -493,7 +498,6 @@
 
 	async function editCharacter(characterId) {
 		// Implement character editing logic here
-		alert(`Editing character with ID: ${characterId}`);
 		let char_data = characters.find((char) => char.id === characterId);
 		console.log(char_data);
 		//create a modal to edit the character
@@ -587,8 +591,7 @@
 		};
 		await send_char_to_backend(character);
 	}
-	async function send_char_to_backend(character)
-	{
+	async function send_char_to_backend(character) {
 		console.log("Adding character:", character);
 		await fetch("/update_session", {
 			method: "POST",
@@ -615,27 +618,9 @@
 		});
 	}
 
-	
+
 </script>
 <script>
-	const plotDetails = document.querySelector(".sel-plot-details");
-	let plotdetailsHeight = plotDetails.scrollHeight + "px"; // get natural height
-	plotDetails.style.overflow = "hidden"; // hide overflow for smooth collapse
-	plotDetails.style.height = "0px"; // start with details hidden
-	plotDetails.style.transition = "all 0.5s ease"; // smooth transition
-	function togglePlotDetails() {
-
-		const collapseBtn = document.querySelector("#collapsePlotDetails");
-
-		if (plotDetails.style.height === "0px") {
-			plotDetails.style.height = plotdetailsHeight; // expand to show details
-			collapseBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Hide Selected Plot';
-			scrollToSection("selectedPlot");
-		} else {
-			plotDetails.style.height = "0px";
-			collapseBtn.innerHTML = '<i class="bi bi-eye"></i> View Selected Plot';
-		}
-	}
 
 	function downloadStory() {
 		const content = document.querySelector("#generatedStory").value;
@@ -775,11 +760,11 @@
 	async function loadStoryDrafts(last = false) {
 		storyDrafts = [];
 		console.log("loading story drafts");
-		await fetch(`/get_story_drafts?id=${sessionId}`)
+		await fetch(`/drafts?id=${sessionId}`)
 			.then(res => res.json())
 			.then(res => {
 				console.log(res);
-				storyDrafts = res.story_drafts;
+				storyDrafts = res.drafts;
 				const storyDraftsDiv = document.querySelector(".story-drafts");
 				storyDraftsDiv.innerHTML = "";
 				storyDraftsDiv.classList.add("row");
@@ -900,7 +885,7 @@
 					Use
 				</button>
 				<button class="btn btn-sm btn-danger delete-btn"
-					data-timestamp="${storyDraft.timestamp}">
+					data-draftid="${storyDraft.draft_id}">
 					Delete
 				</button>
 			</div>
@@ -926,9 +911,26 @@
 	}
 
 	async function useStoryDraft(i, last = false) {
-		function previewStoryDraft(storyDraft) {
-			return new Promise((resolve) => {
-				const modalObj = createModal(`
+		console.log("Found storyDrafts:", storyDrafts);
+		const storyDraft = storyDrafts[i];
+		//alert("Story Draft active");
+		if (last) {
+			console.log("Using last story draft:", storyDraft);
+			const selectedPlot = document.querySelector("#selectedPlot");
+			selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
+			selectedPlot.querySelector("#sel_protagonist").value = storyDraft['plot']['protagonist'];
+			selectedPlot.querySelector("#sel_conflict").value = storyDraft['plot']['conflict'];
+			selectedPlot.querySelector("#sel_stakes").value = storyDraft['plot']['stakes'];
+			selectedPlot.querySelector("#sel_direction").value = storyDraft['plot']['direction'];
+			selectedPlot.querySelector("#sel_roughStoryTimeline").value = storyDraft['plot']['rough_story_timeline'];
+			storyDiv.value = storyDraft['story'];
+			document.getElementById("storyTitle").value = storyDraft['draft_title'];
+		} else {
+			console.log("Using story draft index:", i, storyDraft);
+			showDialog({
+				title: "Story Draft Preview",
+				message: "Do you want to preview this story draft?",
+				markupHTML: `
 					<h4>${storyDraft.draft_title || "Untitled Draft"}</h4>
 					
 					<div style="max-height: 400px; overflow-y: auto; margin-top:10px;">
@@ -942,64 +944,40 @@
 						<p><strong>Opening:</strong></p>
 						<p style="white-space: pre-wrap;">${storyDraft.story}</p>
 					</div>
-
-					<div class="d-flex justify-content-end gap-2 mt-3">
-						<button class="btn btn-secondary" id="cancelPreview">Close</button>
-						<button class="btn btn-primary" id="loadDraft">Load Draft</button>
-					</div>
-				`);
-
-				const modalEl = modalObj.el;
-				const modal = modalObj.instance;
-
-				modalEl.querySelector("#cancelPreview").onclick = () => {
-					modal.hide();
-					resolve(false);
-				};
-
-				modalEl.querySelector("#loadDraft").onclick = () => {
-					modal.hide();
-					resolve(true);
-				};
-
-				modal.show();
+				`,
+				confirmText: "Load Draft",
+				cancelText: "Cancel",
+				onConfirm: async () => {
+					console.log(storyDraft);
+					const selectedPlot = document.querySelector("#selectedPlot");
+					selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
+					selectedPlot.querySelector("#sel_protagonist").value = storyDraft['plot']['protagonist'];
+					selectedPlot.querySelector("#sel_conflict").value = storyDraft['plot']['conflict'];
+					selectedPlot.querySelector("#sel_stakes").value = storyDraft['plot']['stakes'];
+					selectedPlot.querySelector("#sel_direction").value = storyDraft['plot']['direction'];
+					selectedPlot.querySelector("#sel_roughStoryTimeline").value = storyDraft['plot']['rough_story_timeline'];
+					storyDiv.value = storyDraft['story'];
+					document.getElementById("storyTitle").value = storyDraft['draft_title'];
+					showMessage({
+						title: "Story Draft Preview",
+						message: "Story draft loaded successfully",
+						type: "success",
+					});
+				}
 			});
-		}
-
-
-		console.log("Found storyDrafts:", storyDrafts);
-		//alert("Story Draft active");
-		const storyDraft = storyDrafts[i];
-		if (last) {
-			console.log("Using last story draft:", storyDraft);
-		} else {
-			console.log("Using story draft index:", i, storyDraft);
-			const shouldLoad = await previewStoryDraft(storyDraft);
-			if (!shouldLoad) return;
-		}
-
-		console.log(storyDraft);
-		const selectedPlot = document.querySelector("#selectedPlot");
-		selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
-		selectedPlot.querySelector("#sel_protagonist").value = storyDraft['plot']['protagonist'];
-		selectedPlot.querySelector("#sel_conflict").value = storyDraft['plot']['conflict'];
-		selectedPlot.querySelector("#sel_stakes").value = storyDraft['plot']['stakes'];
-		selectedPlot.querySelector("#sel_direction").value = storyDraft['plot']['direction'];
-		selectedPlot.querySelector("#sel_roughStoryTimeline").value = storyDraft['plot']['rough_story_timeline'];
-		storyDiv.value = storyDraft['story'];
-		document.getElementById("storyTitle").value = storyDraft['draft_title'];
+		}		
 	}
 
 	function load_values_in_forms() {
 		// Story Parameters
-		let sess = JSON.parse(`{{ session|default({})|tojson | safe }}`);
-		document.getElementById("mainConflict").value = sess.story_params.mainConflict;
-		document.getElementById("protagonist").value = sess.story_params.protagonist;
-		document.getElementById("openingScene").value = sess.story_params.openingScene;
-		document.getElementById("wordsToGenerate").value = sess.story_params.wordsToGenerate;
-		document.getElementById("storyType").value = sess.story_params.storyType;
-		document.getElementById("storyPerson").value = sess.story_params.storyPerson;
-		document.getElementById("noOfPlots").value = sess.story_params.noOfPlots;
+		let story_params = JSON.parse(`{{ session.story_params|default({})|tojson | safe }}`);
+		document.getElementById("mainConflict").value = story_params.mainConflict;
+		document.getElementById("protagonist").value = story_params.protagonist;
+		document.getElementById("openingScene").value = story_params.openingScene;
+		document.getElementById("wordsToGenerate").value = story_params.wordsToGenerate;
+		document.getElementById("storyType").value = story_params.storyType;
+		document.getElementById("storyPerson").value = story_params.storyPerson;
+		document.getElementById("noOfPlots").value = story_params.noOfPlots;
 
 		const selectedPlot = document.querySelector("#selectedPlot");
 		console.log("dict : ", plots);
@@ -1143,7 +1121,8 @@
 					roughStoryTimeline: s.querySelector("#sel_roughStoryTimeline").value,
 					wordsToGenerate: params.wordsToGenerate,
 					storyType: params.storyType,
-					storyPerson: params.storyPerson
+					storyPerson: params.storyPerson,
+					characters
 				};
 			}
 
@@ -1154,11 +1133,12 @@
 					wordsToGenerate: params.wordsToGenerate,
 					storyType: params.storyType,
 					storyPerson: params.storyPerson,
-					roughStoryTimeline: document.querySelector("#sel_roughStoryTimeline").value
+					roughStoryTimeline: document.querySelector("#sel_roughStoryTimeline").value,
+					characters
 				};
 			}
 
-			if (generate === "character"){
+			if (generate === "character") {
 				let s = document.querySelector("#selectedPlot");
 				console.log("character");
 				return {
@@ -1166,7 +1146,7 @@
 					currentStory,
 					conflict: s.querySelector("#sel_conflict").value,
 					stakes: s.querySelector("#sel_stakes").value,
-					direction: s.querySelector("#sel_direction").value,					
+					direction: s.querySelector("#sel_direction").value,
 					roughStoryTimeline: s.querySelector("#sel_roughStoryTimeline").value
 				};
 			}
@@ -1251,7 +1231,7 @@
 		}
 	};
 
-	async function populateCharacter (){
+	async function populateCharacter() {
 		const jsonMatch = charactersTextfromAI.match(/\[[\s\S]*\]/);
 
 		if (!jsonMatch) {
@@ -1299,49 +1279,35 @@
 	}
 
 
-	getContinuation = async function () {
+	async function getContinuation() {
 		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
-
 		if (!jsonMatch) {
 			throw new Error("No valid JSON found");
 		}
-
 		let safeJSON = jsonMatch[0];
-
 		// 🔥 Clean control characters
 		safeJSON = safeJSON
 			.replace(/\n/g, "")
 			.replace(/\r/g, "")
 			.replace(/\t/g, " ");
-
 		try {
-			console.log(safeJSON);
 			const cleanedStoryFromPlot = JSON.parse(safeJSON);
 			let continuation = cleanedStoryFromPlot.continuation;
-
 			console.log("Continuation received:", continuation);
-
 			// 🔥 Render properly
 			storyDiv.value += " " + continuation.replace(/\\n/g, "<br>");
-
 			await saveStoryDraft();
-
-
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
 			console.log("Problematic JSON:", safeJSON);
 		}
-
 	}
 
-	populateStory = async function () {
-
+	async function populateStory() {
 		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
-
 		if (!jsonMatch) {
 			throw new Error("No valid JSON found");
 		}
-
 		let safeJSON = jsonMatch[0];
 
 		// 🔥 Clean control characters
@@ -1351,34 +1317,22 @@
 			.replace(/\t/g, " ");
 
 		try {
-			console.log(safeJSON);
 			const cleanedStoryFromPlot = JSON.parse(safeJSON);
 			let story = cleanedStoryFromPlot.story;
-
 			// 🔥 Render properly
 			storyDiv.value = story.replace(/\\n/g, "<br>");
-
 			await saveStoryDraft();
-
-
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
 			console.log("Problematic JSON:", safeJSON);
 		}
-
 	}
-	populatePlots = async function () {
-		//console.log("Entering populatePlots function");
-
-		//plotsDiv.innerHTML = "";
+	async function populatePlots() {
 		plots_frontend = plotsTextfromAI.trim();
-		//console.log("plotsTextfromAI:", plotsTextfromAI);
 		plots_frontend = useCachedPlots ? JSON.parse(localStorage.getItem("plots")) : plots_frontend;
 		if (!useCachedPlots) {
 			localStorage.setItem("plots", JSON.stringify(plots_frontend));
 		}
-		//console.log("plots:", plots_frontend);		
-
 		try {
 			const parsed = JSON.parse(plotsTextfromAI);
 
@@ -1402,6 +1356,7 @@
 
 		for (let i = 0; i < plots_frontend.length; i++) {
 			const plot = plots_frontend[i];
+
 			try {
 				const response = await fetch('/update_session', {
 					method: 'POST',
@@ -1419,7 +1374,6 @@
 				console.error("Failed to update session:", error);
 			}
 		}
-
 		loadPlots();
 	};
 
@@ -1492,68 +1446,137 @@
 	}
 
 	function usePlot(i) {
-		const card = i.closest(".accordion-item");
-		const core_idea = card.querySelector(".coreIdea").value;
-		const protagonist = card.querySelector(".protagonist").value;
-		const conflict = card.querySelector(".conflict").value;
-		const stakes = card.querySelector(".stakes").value;
-		const direction = card.querySelector(".direction").value;
-		const rough_story_timeline = card.querySelector(".roughStoryTimeline").value;
-
-		const selectedPlot = document.querySelector("#selectedPlot");
-		selectedPlot.querySelector("#sel_coreIdea").value = core_idea;
-		selectedPlot.querySelector("#sel_protagonist").value = protagonist;
-		selectedPlot.querySelector("#sel_conflict").value = conflict;
-		selectedPlot.querySelector("#sel_stakes").value = stakes;
-		selectedPlot.querySelector("#sel_direction").value = direction;
-		selectedPlot.querySelector("#sel_roughStoryTimeline").value = rough_story_timeline;
-
-		fetch('/update_session', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
+		showDialog({
+			title: "Use Plot",
+			message: "Are you sure you want to use this plot?",
+			confirmText: "Yes, use this plot",
+			cancelText: "No, don't use this plot",
+			onCancel: () => {
+				showMessage({ 
+					type: "info", 
+					title: "Cancelled", 
+					message: "Plot selection cancelled", 
+					showDismissBtn: false, 
+					dismissByTimer: true, timer: 5000 
+				});
 			},
-			body: new URLSearchParams({
-				id: sessionId,   // make sure you have this
-				used_plot_id: i.dataset.id
-			})
+			onConfirm: async () => {
+				const card = i.closest(".accordion-item");
+				const core_idea = card.querySelector(".coreIdea").value;
+				const protagonist = card.querySelector(".protagonist").value;
+				const conflict = card.querySelector(".conflict").value;
+				const stakes = card.querySelector(".stakes").value;
+				const direction = card.querySelector(".direction").value;
+				const rough_story_timeline = card.querySelector(".roughStoryTimeline").value;
+				console.log("Selected Plot:");
+				console.log(core_idea, protagonist, conflict, stakes, direction, rough_story_timeline);
+		
+				const selectedPlot = document.querySelector("#selectedPlot");
+				selectedPlot.querySelector("#sel_coreIdea").value = core_idea;
+				selectedPlot.querySelector("#sel_protagonist").value = protagonist;
+				selectedPlot.querySelector("#sel_conflict").value = conflict;
+				selectedPlot.querySelector("#sel_stakes").value = stakes;
+				selectedPlot.querySelector("#sel_direction").value = direction;
+				selectedPlot.querySelector("#sel_roughStoryTimeline").value = rough_story_timeline;
+		
+				fetch('/update_session', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: new URLSearchParams({
+						id: sessionId,   // make sure you have this
+						used_plot_id: i.dataset.id
+					})
+				});
+				showMessage({ 
+					type: "success", 
+					title: "Success", 
+					message: "Plot loaded successfully", 
+					showDismissBtn: false,
+					dismissByTimer: true, timer: 5000 
+				});
+			}			
 		});
 	}
 
 	async function rejectPlot(i) {
-		const plotId = i.dataset.id;
-		// 🔥 remove from UI
-		const card = i.closest(".accordion-item");
-		if (card) card.remove();
-		await fetch('/update_session', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			},
-			body: new URLSearchParams({
-				id: sessionId,   // make sure you have this
-				rejected_plot_id: plotId
-			})
+		showDialog({
+			title: "Delete Plot",
+			message: "Are you sure you want to delete this plot?",
+			confirmText: "Yes, delete this plot",
+			cancelText: "No, don't delete this plot",
+			onConfirm: async () => {
+				const plotId = i.dataset.id;
+				// 🔥 remove from UI
+				const card = i.closest(".accordion-item");
+				if (card) card.remove();
+				await fetch('/update_session', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: new URLSearchParams({
+						id: sessionId,   // make sure you have this
+						rejected_plot_id: plotId
+					})
+				});
+				await loadPlots();
+				showMessage({
+					type: "success",
+					title: "Success",
+					message: "Plot deleted successfully",
+					showDismissBtn: false,
+					dismissByTimer: true,
+					timer: 5000
+				});		
+			}
 		});
-		await loadPlots();
 	}
 
 	async function rejectStoryDraft(i) {
-		const storyDraftTimestamp = i.dataset.timestamp;
-		// 🔥 remove from UI
-		const card = i.closest(".card");
-		if (card) card.remove();
-		await fetch('/update_session', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
+		const storyDraftID = i.dataset.draftid;
+		showDialog({
+			title: "Confirm Deletion",
+			message: "Do you want to reject this story draft?",
+			confirmText: "OK",
+			cancelText: "Cancel",
+			showCancel: true,
+			onConfirm: async () => {
+				// 🔥 remove from UI
+				const card = i.closest(".card");
+				if (card) card.remove();
+				await fetch('/update_session', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: new URLSearchParams({
+						id: sessionId,   // make sure you have this
+						rejected_story_draft_id: storyDraftID
+					})
+				});
+				showMessage({
+					type: "success",
+					title: "Success",
+					message: "Story draft deleted successfully",
+					showDismissBtn: false,
+					dismissByTimer: true,
+					timer: 5000
+				});
+				await loadStoryDrafts();
 			},
-			body: new URLSearchParams({
-				id: sessionId,   // make sure you have this
-				rejected_story_draft_timestamp: storyDraftTimestamp
-			})
+			onCancel: async () => {
+				showMessage({
+					type: "info",
+					title: "Cancelled",
+					message: "Draft Rejection cancelled",
+					showDismissBtn: false,
+					dismissByTimer: true,
+					timer: 5000
+				});
+			}
 		});
-		await loadStoryDrafts();
 	}
 
 
@@ -1609,6 +1632,111 @@
 	clearButton.addEventListener("click", () => {
 		textarea.value = "";
 	});
+
+	function showDialog({
+		title = "Confirm",
+		message = "",
+		markupHTML = "",
+		confirmText = "OK",
+		cancelText = "Cancel",
+		showCancel = true,
+		onConfirm = async () => { },
+		onCancel = async () => { }
+	}) {
+		return new Promise((resolve) => {
+			const modalObj = createModal(`
+				<h3>${title}</h3>
+				<p>${message}</p>
+				${markupHTML}
+				<div class="d-flex justify-content-end gap-2">
+					${showCancel ? `<button class="btn btn-secondary" id="dialogCancel">${cancelText}</button>` : ""}
+					<button class="btn btn-primary" id="dialogConfirm">${confirmText}</button>
+				</div>
+			`);
+
+			const modalEl = modalObj.el;
+			const modal = modalObj.instance;
+
+			modalEl.querySelector("#dialogConfirm").onclick = async () => {
+				await onConfirm();   // 🔥 run user-defined async function
+				modal.hide();
+				resolve(true);
+			};
+
+			if (showCancel) {
+				modalEl.querySelector("#dialogCancel").onclick = async () => {
+					await onCancel(); // 🔥 optional cancel logic
+					modal.hide();
+					resolve(false);
+				};
+			}
+
+			modal.show();
+		});
+	}
+
+	async function showMessage({
+		type = "success",
+		title = "Error",
+		message,
+		showDismissBtn = false,
+		dismissByKey = true,
+		dismissByClick = true,
+		dismissByTimer = false,
+		dismissTimerMS = 5000
+	}) {
+		const icon = {
+			success: "bi bi-check-circle-fill",
+			error: "bi bi-exclamation-triangle-fill",
+			warning: "bi bi-exclamation-triangle-fill",
+			info: "bi bi-info-circle-fill"
+		}
+		/*const msgModal = createModal(`
+			<label><i class="${icon[type]}"></i> ${title}</label>
+			<p>${message}</p>
+			${showDismiss ? `<button class="btn btn-primary" id="dialogConfirm">OK</button>` : ""}
+		`)*/
+		const msgModal = createModal(`
+			<div class="text-center">				
+				<label class="fs-5"><i class="${icon[type]}"></i> ${title}</label>
+				<hr>
+				<p class="mb-4">${message}</p>
+				${showDismissBtn ? `
+					<div class="d-grid">
+						<button class="btn btn-primary btn-lg" id="dialogConfirm">
+							OK
+						</button>
+					</div>
+				` : ""}
+			</div>
+		`, {
+			backdrop: dismissByClick ? "true" : "static",
+			keyboard: dismissByKey
+		});
+		msgModal.instance.show();
+
+		if (showDismissBtn) {
+			msgModal.el.querySelector("#dialogConfirm").onclick = async () => {
+				msgModal.instance.hide();
+			};
+		}
+
+		if (dismissByTimer) {
+			setTimeout(() => {
+				msgModal.instance.hide();
+			}, dismissTimerMS);
+		}
+	}
+	/*showMessage({
+		type: "success",
+		title: "Success",
+		message: "Test",
+		showDismissBtn: false,
+		dismissByKey: false,
+		dismissByClick: true,
+		dismissByTimer: true,
+		dismissTimerMS: 5000
+	});*/
 
 
 

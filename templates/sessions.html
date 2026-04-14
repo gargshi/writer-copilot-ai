@@ -35,7 +35,7 @@
   }
 
   .session-card:hover {
-    
+
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   }
 
@@ -57,19 +57,20 @@
     background-color: var(--bg-card);
     color: var(--text-primary);
   }
-    .dropdown-item {
-      color: var(--text-primary);
+
+  .dropdown-item {
+    color: var(--text-primary);
   }
-    .dropdown-item:hover {
-      background-color: var(--bg-card);
-      color: var(--text-primary);
-      border: var(--border-light) 1px solid;
+
+  .dropdown-item:hover {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: var(--border-light) 1px solid;
   }
 
   #site-brand {
     display: none;
   }
-
 </style>
 <div class="container py-4">
 
@@ -77,7 +78,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h2 class="mb-0">🖊 Writer’s Copilot</h2>
-      <small class="text-muted">Your creative workspace</small>
+      <small class="text-secondary">Your creative workspace</small>
     </div>
 
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
@@ -91,7 +92,7 @@
   <!-- Empty State -->
   <div id="emptyState" class="text-center mt-5 d-none">
     <h5>No sessions yet</h5>
-    <p class="text-muted">Start your first story and let AI guide you.</p>
+    <p class="text-secondary">Start your first story and let AI guide you.</p>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
       Create Session
     </button>
@@ -104,7 +105,7 @@
       <form method="POST" action="{{ url_for('create_session') }}">
         <div class="modal-header">
           <h5 class="modal-title">New Session</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" title="Close"></button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" title="Close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -115,7 +116,8 @@
 
           <div class="mb-2">
             <label>Description</label>
-            <textarea name="session_description" class="form-control" placeholder="Enter session description"></textarea>
+            <textarea name="session_description" class="form-control"
+              placeholder="Enter session description"></textarea>
           </div>
         </div>
 
@@ -132,7 +134,7 @@
       <form method="POST" action="{{ url_for('update_session') }}">
         <div class="modal-header">
           <h5 class="modal-title">Edit Session</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" title="Close"></button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" title="Close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -146,7 +148,8 @@
 
           <div class="mb-2">
             <label>Description</label>
-            <textarea name="description" id="editDesc" class="form-control" placeholder="Enter session description"></textarea>
+            <textarea name="description" id="editDesc" class="form-control"
+              placeholder="Enter session description"></textarea>
           </div>
         </div>
 
