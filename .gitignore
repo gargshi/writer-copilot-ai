@@ -72,3 +72,5 @@ blackbox.env
 /story_sessions
 /plots
 /characters
+
+/templates/view_session.html
