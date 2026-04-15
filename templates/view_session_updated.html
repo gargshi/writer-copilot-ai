@@ -39,38 +39,44 @@
 	<div class="author-stage bordered">
 		<div class="author-stage-head">
 			<div>
-				<h1>{{ session.session_name }}</h1>
+				<label class="form-label sess-name font-30">{{ session.session_name }}</label>
 				<p>{{ session.session_description }}</p>
 			</div>
 			<div class="d-flex flex-column align-items-md-end gap-2">
-				<p class="text-small mb-0" id="created">{{ session.timestamp }}</p>
-				<a class="btn btn-primary" href="{{ url_for('sessions') }}">
-					<i class="bi bi-arrow-left"></i>
-					Back To Sessions
-				</a>
+				<p class="text-small mb-0 text-black" id="created">{{ session.timestamp }}</p>
+				<div>
+					<a class="btn btn-primary" href="{{ url_for('sessions') }}">
+						<i class="bi bi-arrow-left"></i>
+						Back To Sessions
+					</a>
+					<button class="btn btn-primary help-btn">
+						<i class="bi bi-question"></i>
+						Help
+					</button>
+				</div>
 			</div>
 		</div>
 
-		<div class="workflow-strip">
+		<div class="workflow-strip help">
 			<div class="workflow-step">
 				<span>1</span>
 				<strong>Set the story brief</strong>
-				<p>Define the conflict, point of view, opening scene, and output length.</p>
+				<p class="font-14">Define the conflict, point of view, opening scene, and output length.</p>
 			</div>
 			<div class="workflow-step">
 				<span>2</span>
 				<strong>Pick a plot direction</strong>
-				<p>Generate multiple options, compare them, and lock in the one that feels right.</p>
+				<p class="font-14">Generate multiple options, compare them, and lock in the one that feels right.</p>
 			</div>
 			<div class="workflow-step">
 				<span>3</span>
 				<strong>Shape the cast</strong>
-				<p>Add or generate characters so the story has people worth following.</p>
+				<p class="font-14">Add or generate characters so the story has people worth following.</p>
 			</div>
 			<div class="workflow-step">
 				<span>4</span>
 				<strong>Draft and refine</strong>
-				<p>Write in the main editor, continue with AI, and save useful draft checkpoints.</p>
+				<p class="font-14">Write in the main editor, continue with AI, and save useful draft checkpoints.</p>
 			</div>
 		</div>
 	</div>
@@ -82,7 +88,7 @@
 					<label class="form-label header mb-0">Session Snapshot</label>
 				</div>
 				<div class="session-meta">
-					<div class="context-note">
+					<div class="context-note font-14">
 						Use this sidebar to shape the brief first. The writer workspace and selected plot stay visible on the right.
 					</div>
 					<button class="btn btn-primary genplotbtn" onclick="sendDataToLLM(generate='plots',el=this)">
@@ -160,18 +166,9 @@
 				<div class="story-panel-header">
 					<div>
 						<label class="form-label header mb-0"><i class="bi bi-book"></i> Story Workspace</label>
-						<p>The draft editor is the main working area. Plot context, characters, and saved drafts stay close by without taking over the page.</p>
+						<p class="font-14">The draft editor is the main working area. Plot context, characters, and saved drafts stay close by without taking over the page.</p>
 					</div>
-					<div class="story-actions">
-						<button class="btn btn-primary genstorybtn" onclick="sendDataToLLM(generate='story',el=this)">
-							<i class="bi bi-magic"></i>
-							Generate Story
-						</button>
-						<button class="btn btn-secondary" id="continueStory" onclick="sendDataToLLM(generate='continue',el=this)">
-							<i class="bi bi-robot"></i>
-							Continue With AI
-						</button>
-					</div>
+					
 				</div>
 
 				<div class="story-toolbar">
@@ -201,23 +198,35 @@
 					</div>
 				</div>
 
-				<div class="story-actions mb-3">
-					<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">
-						<i class="bi bi-floppy"></i>
-						Save Draft
-					</button>
-					<button class="btn btn-primary" id="copyStory" onclick="copyToClipboard('generatedStory')">
-						<i class="bi bi-clipboard"></i>
-						Copy
-					</button>
-					<button class="btn btn-primary" onclick="downloadStory()">
-						<i class="bi bi-download"></i>
-						Download
-					</button>
-					<button class="btn btn-primary mr-2" id="clearStory">
-						<i class="bi bi-eraser-fill"></i>
-						Clear
-					</button>
+				<div class="story-actions mb-3 space-between">
+					<div>
+						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">
+							<i class="bi bi-floppy"></i>
+							Save Draft
+						</button>
+						<button class="btn btn-primary" id="copyStory" onclick="copyToClipboard('generatedStory')">
+							<i class="bi bi-clipboard"></i>
+							Copy
+						</button>
+						<button class="btn btn-primary" onclick="downloadStory()">
+							<i class="bi bi-download"></i>
+							Download
+						</button>
+						<button class="btn btn-primary mr-2" id="clearStory">
+							<i class="bi bi-eraser-fill"></i>
+							Clear
+						</button>
+					</div>
+					<div>
+						<button class="btn btn-primary genstorybtn" onclick="sendDataToLLM(generate='story',el=this)">
+							<i class="bi bi-magic"></i>
+							Generate Story
+						</button>
+						<button class="btn btn-secondary" id="continueStory" onclick="sendDataToLLM(generate='continue',el=this)">
+							<i class="bi bi-robot"></i>
+							Continue With AI
+						</button>
+					</div>
 				</div>
 
 				<div class="story-editor" id="storyPlot">
@@ -235,7 +244,7 @@
 						</button>
 					</div>
 
-					<div class="context-note">
+					<div class="context-note font-14">
 						This is the story direction currently feeding the draft. Use the plot library to swap direction, then edit this summary if you want a more precise brief before generating prose.
 					</div>
 
@@ -272,7 +281,7 @@
 						<label class="form-label header mb-0"><i class="bi bi-list"></i> Plot Library</label>
 					</div>
 
-					<div class="context-note">
+					<div class="context-note font-14">
 						Generate a few options, open the ones that look promising, and promote the best one into the selected plot panel.
 					</div>
 
@@ -286,7 +295,7 @@
 						<label class="form-label header mb-0"><i class="bi bi-people"></i> Characters</label>
 					</div>
 
-					<div class="context-note">
+					<div class="context-note font-14">
 						Keep your cast close to the draft. Add characters manually when the AI misses nuance, or generate them from the selected plot when you want momentum.
 					</div>
 
@@ -350,7 +359,7 @@
 						<label class="form-label header mb-0"><i class="bi bi-archive"></i> Drafts</label>
 					</div>
 
-					<div class="context-note">
+					<div class="context-note font-14">
 						Drafts act like milestones. Load an earlier version when you want to branch the story, compare tone, or recover a stronger passage.
 					</div>
 
@@ -1311,7 +1320,7 @@
 			let continuation = cleanedStoryFromPlot.continuation;
 			console.log("Continuation received:", continuation);
 			// 🔥 Render properly
-			storyDiv.value += " " + continuation.replace(/\\n/g, "<br>");
+			storyDiv.value += "\n\n" + continuation.replace(/\\n/g, "<br>");
 			await saveStoryDraft();
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
@@ -1648,6 +1657,20 @@
 	clearButton.addEventListener("click", () => {
 		textarea.value = "";
 	});
+
+	const helpText = document.getElementsByClassName("help")[0];	
+	let helptextheight = helpText.scrollHeight + "px";
+	helpText.style.overflow = "hidden";	
+	helpText.style.height = "0px";	
+	helpText.style.transition = "height 0.5s ease-in-out";
+	document.getElementsByClassName("help-btn")[0].addEventListener("click", () => {
+		if (helpText.style.height === "0px" || !helpText.style.height) {
+			helpText.style.height = helptextheight; // expand to show details
+		} else {
+			helpText.style.height = "0px";
+		}
+	});
+	
 
 
 </script>

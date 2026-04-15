@@ -141,7 +141,14 @@ def autoload_lmstudio_model():
 		print(f"LM Studio autoload failed: {e}")
 
 
-autoload_lmstudio_model()
+def should_autoload_lmstudio_model():
+	# Flask's debug reloader imports this module twice. Only autoload in the
+	# serving process so the model is not loaded twice during development.
+	return __name__ != '__main__'
+
+
+if should_autoload_lmstudio_model():
+	autoload_lmstudio_model()
 
 
 @app.route('/')
@@ -1190,4 +1197,7 @@ def stop_generation():
 
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	debug_mode = True
+	if not debug_mode or os.getenv("WERKZEUG_RUN_MAIN") == "true":
+		autoload_lmstudio_model()
+	app.run(debug=debug_mode)

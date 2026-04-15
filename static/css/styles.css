@@ -1036,6 +1036,26 @@ input.form-control::placeholder {
 	font-size: 20px !important;
 }
 
+.font-22 {
+	font-size: 22px !important;
+}
+
+.font-24 {
+	font-size: 24px !important;
+}
+
+.font-26 {
+	font-size: 26px !important;
+}
+
+.font-28 {
+	font-size: 28px !important;
+}
+
+.font-30 {
+	font-size: 30px !important;
+}
+
 /* ================= SESSION UPDATED ================= */
 
 .session-page {
@@ -1061,21 +1081,20 @@ input.form-control::placeholder {
 	max-height: calc(100vh - 48px);
 	overflow-y: auto;
 	padding-right: 6px;
-	scrollbar-gutter: stable;
 }
 
 .session-page .session-main {
 	display: flex;
 	flex-direction: column;
 	gap: 22px;
+	transition: all 1s ease;
 }
 
 .session-page .author-stage {
-	background:
-		radial-gradient(circle at top right, var(--session-accent), transparent 40%),
-		var(--session-surface);
+	background: var(--session-surface);
 	border-radius: 18px;
 	margin-bottom: 0;
+	transition: all 1s ease;
 }
 
 .session-page .author-stage-head {
@@ -1084,6 +1103,7 @@ input.form-control::placeholder {
 	gap: 18px;
 	align-items: flex-start;
 	margin-bottom: 18px;
+	transition: all 1s ease;
 }
 
 .session-page .author-stage-head h1 {
@@ -1098,10 +1118,14 @@ input.form-control::placeholder {
 }
 
 .session-page .workflow-strip {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	display: flex;	
+	align-items: center;
+	justify-content: space-between;
 	gap: 12px;
 	margin-top: 18px;
+}
+.help{
+	height: fit-content;
 }
 
 .session-page .workflow-step {
@@ -1118,7 +1142,7 @@ input.form-control::placeholder {
 	width: 28px;
 	height: 28px;
 	border-radius: 50%;
-	background: var(--primary);
+	background: #6a6363;
 	color: #fff;
 	font-size: 0.85rem;
 	font-weight: 700;
@@ -1209,8 +1233,14 @@ input.form-control::placeholder {
 
 .session-page .story-actions {
 	display: flex;
+	align-items: center;
 	flex-wrap: wrap;
 	gap: 10px;
+}
+
+.space-between {
+	display: flex;
+	justify-content: space-between;
 }
 
 .session-page .story-toolbar {
@@ -1303,6 +1333,101 @@ input.form-control::placeholder {
 }
 
 @media (max-width: 1199px) {
+	.dock-container {
+		width: calc(100vw - 24px);
+		max-width: 100%;
+		bottom: 12px;
+		padding: 0;
+	}
+
+	.glass-dock {
+		width: 100%;
+		max-width: 100%;
+		padding: 8px 10px;
+		gap: 6px;
+		flex-wrap: wrap;
+		overflow: visible;
+		justify-content: center;
+	}
+
+	.glass-dock::-webkit-scrollbar {
+		display: none;
+	}
+
+	.glass-dock .dock-item {
+		width: 40px;
+		height: 40px;
+		padding: 0;
+		border-radius: 999px;
+		overflow: visible;
+		position: relative;
+		flex: 0 0 auto;
+	}
+
+	.glass-dock .dock-item i {
+		font-size: 16px;
+	}
+
+	.glass-dock .dock-item .dock-label {
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 10px);
+		transform: translate(-50%, 4px);
+		max-width: 0;
+		opacity: 0;
+		padding: 0;
+		pointer-events: none;
+		background: var(--bg-card);
+		color: var(--text-primary);
+		border: 1px solid var(--border-light);
+		border-radius: 999px;
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+		white-space: nowrap;
+		z-index: 20;
+	}
+
+	.glass-dock .dock-item:hover .dock-label {
+		max-width: 220px;
+		opacity: 1;
+		transform: translate(-50%, 0);
+		padding: 7px 12px;
+	}
+
+	.glass-dock .dock-separator {
+		height: 24px;
+		flex: 0 0 auto;
+	}
+
+	.glass-dock .navbar-brand {
+		gap: 0;
+		flex: 0 0 auto;
+	}
+
+	.glass-dock .navbar-brand .dock-label {
+		max-width: 0;
+		opacity: 0;
+		transform: translateX(-4px);
+	}
+
+	.theme-select,
+	.lmstudio-status,
+	.dock-mode-toggle,
+	#dragDockBtn {
+		flex: 0 0 auto;
+	}
+
+	.theme-select {
+		min-width: 130px;
+	}
+
+	.theme-select .options {
+		left: 50%;
+		transform: translateX(-50%);
+		width: max-content;
+		min-width: 100%;
+		max-width: min(220px, calc(100vw - 32px));
+	}
+
 	.session-page .session-layout,
 	.session-page .surface-grid,
 	.session-page .secondary-grid,
@@ -1318,4 +1443,12 @@ input.form-control::placeholder {
 		overflow: visible;
 		padding-right: 0;
 	}
+}
+
+.sess-name{
+	color: var(--primary);
+	font-weight: 600;
+}
+.display-none{
+	display: none;
 }

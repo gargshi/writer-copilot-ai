@@ -32,6 +32,9 @@
 	{% block content %}{% endblock %}
 	<div class="dock-container">
 		<nav class="glass-dock">
+			<div title="Drag to reposition">
+				<button title="Drag to reposition" id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
+			</div>
 			<a href="/" class="navbar-brand bold"><span class="dock-home-icon">🖊</span> <span id="site-brand" class="dock-label">Writer's Copilot</span></a>
 
 			{% block navbar %}{% endblock %}
@@ -59,9 +62,7 @@
 
 
 
-			<div title="Drag to reposition">
-				<button title="Drag to reposition" id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
-			</div>
+			
 		</nav>
 	</div>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"

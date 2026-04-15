@@ -4,6 +4,7 @@ const options = themeSelect.querySelector(".options");
 const lmstudioStatusEl = document.getElementById("lmstudioStatus");
 const glassDock = document.querySelector(".glass-dock");
 const dockModeToggle = document.getElementById("dockModeToggle");
+const dockCompactBreakpoint = window.matchMedia("(max-width: 1199px)");
 
 // Toggle dropdown
 selected.onclick = () => {
@@ -125,18 +126,40 @@ function applyDockMode(mode) {
 	dockModeToggle.title = compact ? "Switch to expanded dock" : "Switch to icons-only dock";
 }
 
+function syncResponsiveDockMode() {
+	if (!glassDock || !dockModeToggle) return;
+
+	if (dockCompactBreakpoint.matches) {
+		applyDockMode("compact");
+		dockModeToggle.disabled = true;
+		dockModeToggle.title = "Compact dock is enabled automatically below desktop width";
+		return;
+	}
+
+	dockModeToggle.disabled = false;
+	const savedDockMode = localStorage.getItem("dockMode") || "expanded";
+	applyDockMode(savedDockMode);
+}
+
 if (dockModeToggle) {
 	dockModeToggle.addEventListener("click", () => {
+		if (dockCompactBreakpoint.matches) return;
+
 		const nextMode = glassDock.classList.contains("compact-dock") ? "expanded" : "compact";
 		localStorage.setItem("dockMode", nextMode);
-		applyDockMode(nextMode);
+		syncResponsiveDockMode();
 	});
 }
 
 (function () {
-	const savedDockMode = localStorage.getItem("dockMode") || "expanded";
-	applyDockMode(savedDockMode);
+	syncResponsiveDockMode();
 })();
+
+if (typeof dockCompactBreakpoint.addEventListener === "function") {
+	dockCompactBreakpoint.addEventListener("change", syncResponsiveDockMode);
+} else if (typeof dockCompactBreakpoint.addListener === "function") {
+	dockCompactBreakpoint.addListener(syncResponsiveDockMode);
+}
 
 
 const dock = document.querySelector(".dock-container");
