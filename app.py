@@ -9,6 +9,7 @@ import time
 
 import os
 import json
+import httpx
 
 from werkzeug.utils import secure_filename
 
@@ -23,8 +24,18 @@ client = OpenAI(
 	api_key=os.getenv("LMSTUDIO_API_KEY")
 )
 
+lmstudio_load_state = {
+	"attempted": False,
+	"loaded": False,
+	"model": os.getenv("LMSTUDIO_MODEL"),
+	"status": "not_started",
+	"response": None,
+	"error": None,
+}
+
 PLOT_DIR=os.getenv("PLOT_FOLDER_NAME")
 DRAFTS_DIR=os.getenv("DRAFT_FOLDER_NAME")
+CHARACTERS_DIR=os.getenv("CHARACTERS_FOLDER_NAME", "characters")
 def create_plot_directory():
 	try:
 		current_dir = os.getcwd()
@@ -42,13 +53,95 @@ def create_drafts_directory():
 	except Exception as e:
 		print("Error : ",e)
 
+def create_characters_directory():
+	try:
+		current_dir = os.getcwd()
+		characters_dir = os.path.join(current_dir, CHARACTERS_DIR)
+		if not os.path.exists(characters_dir):
+			os.makedirs(characters_dir)
+	except Exception as e:
+		print("Error : ",e)
+
 create_plot_directory()
 create_drafts_directory()
+create_characters_directory()
 
 app = Flask(__name__)
 active_generations = {}
 
 app.secret_key = os.getenv("APP_SECRET_KEY")
+
+
+def get_lmstudio_rest_base_url():
+	base_url = (os.getenv("LMSTUDIO_BASE_URL") or "").strip()
+	if not base_url:
+		raise ValueError("LMSTUDIO_BASE_URL is not configured")
+
+	base_url = base_url.rstrip("/")
+	if base_url.endswith("/v1"):
+		base_url = base_url[:-3]
+
+	return base_url
+
+
+def load_lmstudio_model():
+	model_name = (os.getenv("LMSTUDIO_MODEL") or "").strip()
+	if not model_name:
+		raise ValueError("LMSTUDIO_MODEL is not configured")
+
+	lmstudio_load_state.update({
+		"attempted": True,
+		"loaded": False,
+		"model": model_name,
+		"status": "loading",
+		"response": None,
+		"error": None,
+	})
+
+	base_url = get_lmstudio_rest_base_url()
+	api_key = os.getenv("LMSTUDIO_API_KEY", "lm-studio")
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": f"Bearer {api_key}"
+	}
+
+	with httpx.Client(timeout=60.0) as http_client:
+		response = http_client.post(
+			f"{base_url}/api/v1/models/load",
+			headers=headers,
+			json={
+				"model": model_name,
+				"echo_load_config": True
+			}
+		)
+		response.raise_for_status()
+		payload = response.json()
+
+	lmstudio_load_state.update({
+		"loaded": payload.get("status") == "loaded",
+		"status": payload.get("status", "unknown"),
+		"response": payload,
+		"error": None,
+	})
+
+	return payload
+
+
+def autoload_lmstudio_model():
+	try:
+		payload = load_lmstudio_model()
+		print(f"LM Studio model loaded: {payload.get('instance_id', os.getenv('LMSTUDIO_MODEL'))}")
+	except Exception as e:
+		lmstudio_load_state.update({
+			"attempted": True,
+			"loaded": False,
+			"status": "error",
+			"error": str(e),
+		})
+		print(f"LM Studio autoload failed: {e}")
+
+
+autoload_lmstudio_model()
 
 
 @app.route('/')
@@ -59,6 +152,38 @@ def sessions():
 @app.route('/story')
 def story():
 	return render_template('index.html')
+
+
+@app.route('/lmstudio/load_model', methods=['POST'])
+def lmstudio_load_model_endpoint():
+	try:
+		payload = load_lmstudio_model()
+		return jsonify({
+			"status": "success",
+			"message": "LM Studio model loaded successfully",
+			"model_state": lmstudio_load_state,
+			"payload": payload
+		})
+	except Exception as e:
+		lmstudio_load_state.update({
+			"attempted": True,
+			"loaded": False,
+			"status": "error",
+			"error": str(e),
+		})
+		return jsonify({
+			"status": "error",
+			"message": "Failed to load LM Studio model",
+			"model_state": lmstudio_load_state
+		}), 500
+
+
+@app.route('/lmstudio/load_model', methods=['GET'])
+def lmstudio_load_model_status():
+	return jsonify({
+		"status": "success",
+		"model_state": lmstudio_load_state
+	})
 
 
 def create_session_directory():
@@ -163,21 +288,25 @@ def update_session():
 			if 'add_char' in fields:
 				print("Adding character")
 				character = json.loads(data['add_char'])
-				session_dict['characters'].append({
-					"id": str(uuid.uuid4()),
+				char_id = str(uuid.uuid4())
+				character_obj = {
+					"id": char_id,
 					"name": character['name'],
 					"role": character['role'],
 					"personality": character['personality'],
 					"description": character['description'],
 					"appearance": character['appearance'],
 					"background": character['background']
-				}) # add characters
+				}
+				create_character_in_directory(character_obj)
+				session_dict['characters'].append(char_id)
 			elif 'delete_char_id' in fields:				
 				char_id = data['delete_char_id']
 				print("Character id to delete:", char_id)
+				delete_character_in_directory(char_id)
 				session_dict['characters'] = [
 					c for c in session_dict['characters']
-					if c['id'] != char_id
+					if c != char_id
 				]
 				print("Remaining characters:", session_dict['characters'])
 			elif 'update_char_id' in fields:
@@ -192,10 +321,7 @@ def update_session():
 					"appearance": character['appearance'],
 					"background": character['background']
 				}
-				session_dict['characters'] = [
-					c if c['id'] != char_id else up_character
-					for c in session_dict['characters']
-				]
+				update_character_in_directory(char_id, up_character)
 
 
 		with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'w') as f:
@@ -431,6 +557,110 @@ def draft_detail_handler(draft_id):
 		return jsonify({"status": "error"})
 
 
+# Character handling
+def create_character_in_directory(character):
+	try:
+		current_dir = os.getcwd()
+		if not os.path.exists(os.path.join(current_dir, CHARACTERS_DIR)):
+			os.makedirs(os.path.join(current_dir, CHARACTERS_DIR))
+		with open(os.path.join(current_dir, CHARACTERS_DIR, f'character_{character["id"]}.json'), 'w') as f:
+			json.dump(character, f)
+	except Exception as e:
+		print("Error : ",e)
+
+def get_all_characters():
+	try:
+		current_dir = os.getcwd()
+		characters = []
+		for file in os.listdir(os.path.join(current_dir, CHARACTERS_DIR)):
+			with open(os.path.join(current_dir, CHARACTERS_DIR, file), 'r') as f:
+				character = json.load(f)
+				characters.append(character)
+		return characters
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def delete_character_in_directory(character_id):
+	try:
+		current_dir = os.getcwd()
+		filepath=os.path.join(current_dir, CHARACTERS_DIR, f'character_{character_id}.json')
+		if os.path.exists(filepath):
+			os.remove(filepath)
+	except Exception as e:
+		print("Error : ",e)
+
+def fetch_character_from_directory(character_id):
+	try:
+		current_dir = os.getcwd()
+		filepath=os.path.join(current_dir, CHARACTERS_DIR, f'character_{character_id}.json')
+		if not os.path.exists(filepath):
+			return
+		with open(filepath, 'r') as f:
+			character = json.load(f)
+		return character
+	except Exception as e:
+		print("Error : ",e)
+		return
+
+def update_character_in_directory(character_id, character):
+	try:
+		current_dir = os.getcwd()
+		with open(os.path.join(current_dir, CHARACTERS_DIR, f'character_{character_id}.json'), 'w') as f:
+			json.dump(character, f)
+	except Exception as e:
+		print("Error : ",e)
+
+@app.route('/characters/', methods=['GET','POST'])
+def characters_handler():
+	try:
+		if request.method == 'POST':
+			character = request.json
+			create_character_in_directory(character)
+			return jsonify({"status": "created"})
+		
+		elif request.method == 'GET':
+			if request.args.get('id'):
+				''' To get all characters for a session '''
+				print("recieved id=",request.args.get('id'))
+				sess_id = request.args.get('id')
+				sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
+				with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
+					session = json.load(f)
+				character_ids = [char_id for char_id in session['characters']]
+				characters = []
+				for character_id in character_ids:
+					character = fetch_character_from_directory(character_id)
+					if character:
+						characters.append(character)
+				return jsonify({"status": "success", "characters": characters})
+			characters = get_all_characters()
+			return jsonify(characters)
+
+	except Exception as e:
+		print("Error:", e)
+		return jsonify({"status": "error"})
+
+@app.route('/characters/<character_id>', methods=['GET','PUT', 'DELETE'])
+def character_detail_handler(character_id):
+	try:
+		if request.method == 'GET':
+			character = fetch_character_from_directory(character_id)
+			return jsonify(character)
+		
+		elif request.method == 'PUT':
+			character = request.json
+			update_character_in_directory(character_id, character)
+			return jsonify({"status": "updated"})
+		
+		elif request.method == 'DELETE':
+			delete_character_in_directory(character_id)
+			return jsonify({"status": "deleted"})
+
+	except Exception as e:
+		print("Error:", e)
+		return jsonify({"status": "error"})
+
 
 @app.route('/get_sessions', methods=['GET'])
 def get_sessions():
@@ -481,7 +711,10 @@ def view_session(id):
 	print(len(session))
 	print("SESSION DATA-END")
 
+	return render_template('view_session_updated.html', session=session, plots=plots)
+
 	return render_template('view_session.html', session=session, plots=plots)
+
 
 
 @app.route('/delete_session', methods=['POST'])
