@@ -53,6 +53,10 @@
 						<i class="bi bi-question"></i>
 						Help
 					</button>
+					<button class="btn btn-primary help-btn" onclick="openSettingsMenu()">
+						<i class="bi bi-gear"></i>
+						Settings
+					</button>
 				</div>
 			</div>
 		</div>
@@ -89,12 +93,10 @@
 				</div>
 				<div class="session-meta">
 					<div class="context-note font-14">
-						Use this sidebar to shape the brief first. The writer workspace and selected plot stay visible on the right.
+						Use this sidebar to shape the brief first. The writer workspace and selected plot stay visible
+						on the right.
 					</div>
-					<button class="btn btn-primary genplotbtn" onclick="sendDataToLLM(generate='plots',el=this)">
-						<i class="bi bi-stars"></i>
-						Generate Plot Options
-					</button>
+
 				</div>
 			</section>
 
@@ -105,17 +107,20 @@
 				<div class="story-parameters">
 					<div class="form-group">
 						<label for="mainConflict">Main conflict</label>
-						<textarea class="form-control text-area" placeholder="What is the central conflict?" id="mainConflict"></textarea>
+						<textarea class="form-control text-area" placeholder="What is the central conflict?"
+							id="mainConflict"></textarea>
 					</div>
 
 					<div class="form-group">
 						<label for="protagonist">Protagonist</label>
-						<textarea class="form-control text-area" placeholder="Who is the main character?" id="protagonist"></textarea>
+						<textarea class="form-control text-area" placeholder="Who is the main character?"
+							id="protagonist"></textarea>
 					</div>
 
 					<div class="form-group">
 						<label for="openingScene">Opening scene</label>
-						<textarea class="form-control text-area" placeholder="What happens in the first scene?" id="openingScene"></textarea>
+						<textarea class="form-control text-area" placeholder="What happens in the first scene?"
+							id="openingScene"></textarea>
 					</div>
 
 					<div class="form-group">
@@ -138,13 +143,19 @@
 
 					<div class="form-group">
 						<label for="noOfPlots">Number of plots to generate</label>
-						<input type="number" class="form-control" placeholder="Number of plots" id="noOfPlots" value="1" />
+						<input type="number" class="form-control" placeholder="Number of plots" id="noOfPlots"
+							value="1" />
 					</div>
 
 					<div class="form-group">
 						<label for="wordsToGenerate">Words to generate</label>
-						<input type="number" class="form-control" placeholder="Number of words to generate" id="wordsToGenerate" value="300" />
+						<input type="number" class="form-control" placeholder="Number of words to generate"
+							id="wordsToGenerate" value="300" />
 					</div>
+					<button class="btn btn-primary genplotbtn" onclick="sendDataToLLM(generate='plots',el=this)">
+						<i class="bi bi-stars"></i>
+						Generate Plot Options
+					</button>
 				</div>
 			</section>
 
@@ -166,41 +177,47 @@
 				<div class="story-panel-header">
 					<div>
 						<label class="form-label header mb-0"><i class="bi bi-book"></i> Story Workspace</label>
-						<p class="font-14">The draft editor is the main working area. Plot context, characters, and saved drafts stay close by without taking over the page.</p>
+						<p class="font-14">The draft editor is the main working area. Plot context, characters, and
+							saved drafts stay close by without taking over the page.</p>
 					</div>
-					
+
 				</div>
 
 				<div class="story-toolbar">
 					<div class="form-group">
 						<label for="storyTitle">Story Title</label>
-						<input type="text" class="form-control" id="storyTitle" placeholder="Give this draft a working title">
+						<input type="text" class="form-control" id="storyTitle"
+							placeholder="Give this draft a working title">
 					</div>
 
-					<div class="format-tools">
-						<label for="font">Font</label>
-						<select id="font" name="font" class="form-control">
-							<option value="Arial">Arial</option>
-							<option value="Courier">Courier</option>
-							<option value="Georgia">Georgia</option>
-							<option value="Times New Roman">Times New Roman</option>
-							<option value="Verdana" selected>Verdana</option>
-							<option value="Trebuchet MS">Trebuchet MS</option>
-							<option value="Garamond">Garamond</option>
-							<option value="Comic Sans MS">Comic Sans MS</option>
-							<option value="Brush Script MT">Brush Script MT</option>
-							<option value="Inter">Inter</option>
-						</select>
+					<div class="format-tools d-flex">
+						<div class="d-flex align-items-center gap-2">
+							<label for="font">Font</label>
+							<select id="font" name="font" class="form-control">
+								<option value="Arial">Arial</option>
+								<option value="Courier">Courier</option>
+								<option value="Georgia">Georgia</option>
+								<option value="Times New Roman">Times New Roman</option>
+								<option value="Verdana" selected>Verdana</option>
+								<option value="Trebuchet MS">Trebuchet MS</option>
+								<option value="Garamond">Garamond</option>
+								<option value="Comic Sans MS">Comic Sans MS</option>
+								<option value="Brush Script MT">Brush Script MT</option>
+								<option value="Inter">Inter</option>
+							</select>
+						</div>
+						<div class="d-flex align-items-center gap-2">
+							<label for="fontSize">Size</label>
+							<input type="range" id="fontSize" name="fontSize" min="10" max="20" value="12">
+							<span id="fontSizeValue"></span>
+						</div>	
 
-						<label for="fontSize">Size</label>
-						<input type="range" id="fontSize" name="fontSize" min="10" max="20" value="12">
-						<span id="fontSizeValue"></span>
 					</div>
 				</div>
 
 				<div class="story-actions mb-3 space-between">
 					<div>
-						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft()">
+						<button class="btn btn-primary" id="saveStory" onclick="saveStoryDraft(this)">
 							<i class="bi bi-floppy"></i>
 							Save Draft
 						</button>
@@ -222,7 +239,8 @@
 							<i class="bi bi-magic"></i>
 							Generate Story
 						</button>
-						<button class="btn btn-secondary" id="continueStory" onclick="sendDataToLLM(generate='continue',el=this)">
+						<button class="btn btn-secondary" id="continueStory"
+							onclick="sendDataToLLM(generate='continue',el=this)">
 							<i class="bi bi-robot"></i>
 							Continue With AI
 						</button>
@@ -230,7 +248,8 @@
 				</div>
 
 				<div class="story-editor" id="storyPlot">
-					<textarea class="form-control text-area text-justify h-500" id="generatedStory" placeholder="Start writing here or generate a draft from the selected plot."></textarea>
+					<textarea class="form-control text-area text-justify h-500" id="generatedStory"
+						placeholder="Start writing here or generate a draft from the selected plot."></textarea>
 				</div>
 			</section>
 
@@ -238,40 +257,48 @@
 				<section class="session-card bordered" id="selected-plot-section">
 					<div class="session-card-header">
 						<label class="form-label header mb-0"><i class="bi bi-journal-text"></i> Selected Plot</label>
-						<button class="btn btn-primary gencharbtn" onclick="sendDataToLLM(generate='character',el=this)">
+						<button class="btn btn-primary gencharbtn"
+							onclick="sendDataToLLM(generate='character',el=this)">
 							<i class="bi bi-people-fill"></i>
 							Generate Characters
 						</button>
 					</div>
 
 					<div class="context-note font-14">
-						This is the story direction currently feeding the draft. Use the plot library to swap direction, then edit this summary if you want a more precise brief before generating prose.
+						This is the story direction currently feeding the draft. Use the plot library to swap direction,
+						then edit this summary if you want a more precise brief before generating prose.
 					</div>
 
 					<div class="plot-summary-grid" id="selectedPlot">
 						<div class="form-group">
 							<label>Core Idea</label>
-							<textarea class="form-control text-area" id="sel_coreIdea" placeholder="What is the core idea?">${plot.core_idea}</textarea>
+							<textarea class="form-control text-area" id="sel_coreIdea"
+								placeholder="What is the core idea?">${plot.core_idea}</textarea>
 						</div>
 						<div class="form-group">
 							<label>Protagonist</label>
-							<textarea class="form-control text-area" id="sel_protagonist" placeholder="Protagonist">${plot.protagonist}</textarea>
+							<textarea class="form-control text-area" id="sel_protagonist"
+								placeholder="Protagonist">${plot.protagonist}</textarea>
 						</div>
 						<div class="form-group">
 							<label>Conflict</label>
-							<textarea class="form-control text-area" id="sel_conflict" placeholder="Conflict">${plot.conflict}</textarea>
+							<textarea class="form-control text-area" id="sel_conflict"
+								placeholder="Conflict">${plot.conflict}</textarea>
 						</div>
 						<div class="form-group">
 							<label>Stakes</label>
-							<textarea class="form-control text-area" id="sel_stakes" placeholder="Stakes">${plot.stakes}</textarea>
+							<textarea class="form-control text-area" id="sel_stakes"
+								placeholder="Stakes">${plot.stakes}</textarea>
 						</div>
 						<div class="form-group">
 							<label>Direction</label>
-							<textarea class="form-control text-area" id="sel_direction" placeholder="Direction">${plot.direction}</textarea>
+							<textarea class="form-control text-area" id="sel_direction"
+								placeholder="Direction">${plot.direction}</textarea>
 						</div>
 						<div class="form-group">
 							<label>Rough Story Timeline</label>
-							<textarea class="form-control text-area" id="sel_roughStoryTimeline" placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
+							<textarea class="form-control text-area" id="sel_roughStoryTimeline"
+								placeholder="Rough Story Timeline">${plot.rough_story_timeline}</textarea>
 						</div>
 					</div>
 				</section>
@@ -282,7 +309,8 @@
 					</div>
 
 					<div class="context-note font-14">
-						Generate a few options, open the ones that look promising, and promote the best one into the selected plot panel.
+						Generate a few options, open the ones that look promising, and promote the best one into the
+						selected plot panel.
 					</div>
 
 					<div class="accordion plot-library-grid" id="plots"></div>
@@ -296,7 +324,8 @@
 					</div>
 
 					<div class="context-note font-14">
-						Keep your cast close to the draft. Add characters manually when the AI misses nuance, or generate them from the selected plot when you want momentum.
+						Keep your cast close to the draft. Add characters manually when the AI misses nuance, or
+						generate them from the selected plot when you want momentum.
 					</div>
 
 					<div class="characters-panel">
@@ -326,27 +355,32 @@
 
 								<div class="form-group">
 									<label for="charBackground">Background</label>
-									<textarea id="charBackground" class="form-control text-area" placeholder="Character Background"></textarea>
+									<textarea id="charBackground" class="form-control text-area"
+										placeholder="Character Background"></textarea>
 								</div>
 
 								<div class="form-group">
 									<label for="charAppearance">Appearance</label>
-									<textarea id="charAppearance" class="form-control text-area" placeholder="Character Appearance"></textarea>
+									<textarea id="charAppearance" class="form-control text-area"
+										placeholder="Character Appearance"></textarea>
 								</div>
 
 								<div class="form-group">
 									<label for="charPersonality">Personality</label>
-									<textarea id="charPersonality" class="form-control text-area" placeholder="Character Personality"></textarea>
+									<textarea id="charPersonality" class="form-control text-area"
+										placeholder="Character Personality"></textarea>
 								</div>
 
 								<div class="form-group">
 									<label for="charDescription">Description</label>
-									<textarea id="charDescription" class="form-control text-area" placeholder="Character Description"></textarea>
+									<textarea id="charDescription" class="form-control text-area"
+										placeholder="Character Description"></textarea>
 								</div>
 
 								<div class="d-flex justify-content-end mt-3">
 									<button class="btn btn-secondary me-2" id="clearChar">Clear</button>
-									<button class="btn btn-primary" id="saveChar" onclick="addCharacter()">Add Character</button>
+									<button class="btn btn-primary" id="saveChar" onclick="addCharacter()">Add
+										Character</button>
 								</div>
 							</div>
 							<div class="all_chars"></div>
@@ -360,7 +394,8 @@
 					</div>
 
 					<div class="context-note font-14">
-						Drafts act like milestones. Load an earlier version when you want to branch the story, compare tone, or recover a stronger passage.
+						Drafts act like milestones. Load an earlier version when you want to branch the story, compare
+						tone, or recover a stronger passage.
 					</div>
 
 					<div class="story-drafts"></div>
@@ -376,6 +411,42 @@
 	const sessionId = "{{ session.session_id }}";
 </script>
 <script>
+	let autosaveafterAI = localStorage.getItem("autosaveafterAI") === "true";
+
+	const settingsMenuHTML = `
+	<div class="d-flex space-between">	
+		<label class="form-label me-2 mt-0" for="saveStoryonAIComp">
+			Save Story on AI Completion
+		</label>
+		<div class="form-check form-switch custom-switch">
+			<input class="form-check-input" 
+				type="checkbox" 
+				id="saveStoryonAIComp"
+				${autosaveafterAI ? "checked" : ""}
+				onchange="saveStoryonAIComp()">
+		</div>	
+	</div>
+	`;
+	setTimeout(() => {
+		document.getElementById("saveStoryonAIComp")?.addEventListener("change", saveStoryonAIComp);
+	}, 0);
+	// Opens the settings dialog with the current session preferences.
+	function openSettingsMenu() {
+		showDialog({
+			title: "Settings",
+			markupHTML: settingsMenuHTML,
+			showCancel: false,
+			showConfirm: false
+		});
+	}
+
+	// Persists the auto-save-on-AI-completion toggle in local storage.
+	function saveStoryonAIComp() {
+		autosaveafterAI = document.getElementById("saveStoryonAIComp").checked;
+		localStorage.setItem("autosaveafterAI", autosaveafterAI);
+	}
+</script>
+<script>
 	const charactersContainer = document.getElementById("charactersContainer");
 	const addCharDiv = charactersContainer.querySelector(".add-char");
 	const addCharDivHeight = addCharDiv.scrollHeight + "px"; // get natural height
@@ -383,6 +454,7 @@
 	addCharDiv.style.transition = "height 0.8s ease"; // smooth transition
 	let characters = [];
 
+	// Collapses the add-character form and restores the default button label.
 	function close_add_char() {
 		addCharDiv.style.height = "0px";
 		const addCharBtn = charactersContainer.querySelector(".btn-primary");
@@ -391,6 +463,7 @@
 	close_add_char();
 
 
+	// Toggles the add-character form open or closed.
 	function reveal_add_char(el) {
 		if (addCharDiv) {
 			if (addCharDiv.style.height === "0px" || !addCharDiv.style.height) {
@@ -404,8 +477,8 @@
 		}
 	}
 
+	// Fetches the session characters from the backend and renders them in the sidebar.
 	async function loadCharacters() {
-		console.log("Loading characters for session:", sessionId);
 		await fetch(`/characters?id=${sessionId}`, {
 			method: "GET",
 			headers: {
@@ -433,6 +506,7 @@
 	}
 	loadCharacters();
 
+	// Builds and appends a single character card to the character list UI.
 	function createCharacterCard(character) {
 		const card = document.createElement("div");
 		card.className = "character-card card mb-3";
@@ -485,9 +559,9 @@
 		charactersContainer.querySelector(".all_chars").appendChild(card);
 	}
 
+	// Deletes a character from the current session and refreshes the list.
 	async function deleteCharacter(characterId) {
 		// Implement character deletion logic here
-		console.log("Delete character with ID:", characterId);
 		await fetch('/update_session', {
 			method: 'POST',
 			headers: {
@@ -513,14 +587,15 @@
 		});
 	}
 
+	// Finds the requested character and opens the edit modal with its current values.
 	async function editCharacter(characterId) {
 		// Implement character editing logic here
 		let char_data = characters.find((char) => char.id === characterId);
-		console.log(char_data);
 		//create a modal to edit the character
 		await openEditCharacterModal(char_data, characterId);
 	}
 
+	// Shows a modal for editing a character and saves the updated values back to the session.
 	function openEditCharacterModal(char_data, characterId) {
 		return new Promise((resolve) => {
 			const modal = createModal(`
@@ -583,6 +658,7 @@
 		});
 	}
 
+	// Validates the add-character form and submits a new character to the backend.
 	async function addCharacter() {
 		const characterName = document.getElementById("charName").value;
 		const characterDescription = document.getElementById("charDescription").value;
@@ -608,8 +684,8 @@
 		};
 		await send_char_to_backend(character);
 	}
+	// Sends a character payload to the backend, then reloads the character list.
 	async function send_char_to_backend(character) {
-		console.log("Adding character:", character);
 		await fetch("/update_session", {
 			method: "POST",
 			headers: {
@@ -637,6 +713,7 @@
 </script>
 <script>
 
+	// Downloads the current story draft as a plain text file.
 	function downloadStory() {
 		const content = document.querySelector("#generatedStory").value;
 		const title = document.getElementById("storyTitle").value || "my_story";
@@ -668,6 +745,7 @@
 		URL.revokeObjectURL(url);
 	}
 
+	// Copies the value of the target text field to the clipboard.
 	function copyToClipboard(elementId) {
 		const text = document.getElementById(elementId).value;
 		if (!text) {
@@ -699,6 +777,7 @@
 			});
 	}
 
+	// Smoothly scrolls to a section and briefly highlights it for orientation.
 	function scrollToSection(id) {
 		const el = document.getElementById(id);
 		if (el) {
@@ -746,7 +825,6 @@
 
 	const ts_elem = document.getElementById('created');
 	let av_plots = JSON.parse(`{{ plots.available | default([]) | tojson | safe }}`);
-	console.log(av_plots);
 
 	const plotsDiv = document.getElementById("plots");
 	let plotsTextfromAI = "";
@@ -759,13 +837,12 @@
 
 	const storyDiv = document.getElementById("generatedStory");
 
+	// Loads all available plots for the session and rebuilds the plot library UI.
 	function loadPlots() {
 		plotCounter = 0;
 		fetch(`/get_plots?id=${sessionId}`)
 			.then(res => res.json())
 			.then(res => {
-
-				console.log(res);
 				const av_plots = res.plots.available;
 
 				plotsDiv.innerHTML = "";
@@ -785,13 +862,12 @@
 			});
 	}
 
+	// Fetches saved story drafts and optionally loads the most recent one.
 	async function loadStoryDrafts(last = false) {
 		storyDrafts = [];
-		console.log("loading story drafts");
 		await fetch(`/drafts?id=${sessionId}`)
 			.then(res => res.json())
 			.then(res => {
-				console.log(res);
 				storyDrafts = res.drafts;
 				const storyDraftsDiv = document.querySelector(".story-drafts");
 				storyDraftsDiv.innerHTML = "";
@@ -816,7 +892,8 @@
 		}
 	}
 
-	async function saveStoryDraft() {
+	// Saves the current story and selected plot context as a draft.
+	async function saveStoryDraft(el=null) {
 		let selectedPlot = document.querySelector("#selectedPlot");
 
 		let core_idea = selectedPlot.querySelector("#sel_coreIdea").value;
@@ -829,9 +906,8 @@
 
 		let story = storyDiv.value;
 
+		// Sends the current draft payload to the backend.
 		async function saveStoryYes() {
-			//console.log("story div value :", story);
-
 			await fetch('/update_session', {
 				method: 'POST',
 				headers: {
@@ -851,49 +927,25 @@
 			});
 		}
 
-		function showSaveDialog() {
-			return new Promise((resolve) => {
-				const modalObj = createModal(`
-					<h3>Saving...</h3>
-					<p>Do you want to save the story?</p>
-					<div class="d-flex justify-content-end gap-2">
-						<button class="btn btn-secondary" id="cancelSave">Cancel</button>
-						<button class="btn btn-primary" id="confirmSave">Save</button>
-					</div>
-				`);
-
-				console.log(modalObj);
-
-				const modalEl = modalObj.el;
-				const modal = modalObj.instance;
-
-
-				modalEl.querySelector("#cancelSave").onclick = () => {
-					modal.hide();
-					resolve(false);
-				};
-
-				modalEl.querySelector("#confirmSave").onclick = () => {
-					modal.hide();
-					resolve(true);
-				};
-
-				modal.show();
-
-			});
+		if (el || !autosaveafterAI) {
+			showDialog({
+				title: "Save Story",
+				message: "Do you want to save the story?",
+				confirmText: "Yes, save",
+				cancelText: "No, don't save",
+				onConfirm: async () => {
+					await saveStoryYes();        // wait for API
+					await loadStoryDrafts(); 
+				}
+			});			
 		}
-
-		// 🔥 Proper flow
-		const shouldSave = await showSaveDialog();
-
-		if (shouldSave) {
+		else {
 			await saveStoryYes();        // wait for API
-			await loadStoryDrafts();     // THEN refresh
-		} else {
-			console.log("User cancelled");
+			await loadStoryDrafts();
 		}
 	}
 
+	// Builds the draft card UI for a single saved story draft.
 	function createStoryDraftDiv(i, storyDraft) {
 		const div = document.createElement("div");
 		div.className = "draft-card";
@@ -938,12 +990,10 @@
 		return div;
 	}
 
+	// Loads a saved draft into the editor, optionally without prompting for the most recent draft.
 	async function useStoryDraft(i, last = false) {
-		console.log("Found storyDrafts:", storyDrafts);
 		const storyDraft = storyDrafts[i];
-		//alert("Story Draft active");
 		if (last) {
-			console.log("Using last story draft:", storyDraft);
 			const selectedPlot = document.querySelector("#selectedPlot");
 			selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
 			selectedPlot.querySelector("#sel_protagonist").value = storyDraft['plot']['protagonist'];
@@ -954,14 +1004,13 @@
 			storyDiv.value = storyDraft['story'];
 			document.getElementById("storyTitle").value = storyDraft['draft_title'];
 		} else {
-			console.log("Using story draft index:", i, storyDraft);
 			showDialog({
 				title: "Story Draft Preview",
 				message: "Do you want to preview this story draft?",
 				markupHTML: `
-					<h4>${storyDraft.draft_title || "Untitled Draft"}</h4>
+					<h4 class="font-16">${storyDraft.draft_title || "Untitled Draft"}</h4>
 					
-					<div style="max-height: 400px; overflow-y: auto; margin-top:10px;">
+					<div style="max-height: 400px; overflow-y: auto; margin-top:10px;" class="mb-4 font-14 text-justify">
 						<p><strong>Plot:</strong> ${storyDraft.plot.core_idea}</p>
 						<p><strong>Protagonist:</strong> ${storyDraft.plot.protagonist}</p>
 						<p><strong>Conflict:</strong> ${storyDraft.plot.conflict}</p>
@@ -976,7 +1025,6 @@
 				confirmText: "Load Draft",
 				cancelText: "Cancel",
 				onConfirm: async () => {
-					console.log(storyDraft);
 					const selectedPlot = document.querySelector("#selectedPlot");
 					selectedPlot.querySelector("#sel_coreIdea").value = storyDraft['plot']['core_idea'];
 					selectedPlot.querySelector("#sel_protagonist").value = storyDraft['plot']['protagonist'];
@@ -996,6 +1044,7 @@
 		}
 	}
 
+	// Populates the form fields from the session data that was rendered by the server.
 	function load_values_in_forms() {
 		// Story Parameters
 		let story_params = JSON.parse(`{{ session.story_params|default({})|tojson | safe }}`);
@@ -1008,7 +1057,6 @@
 		document.getElementById("noOfPlots").value = story_params.noOfPlots;
 
 		const selectedPlot = document.querySelector("#selectedPlot");
-		console.log("dict : ", plots);
 		let usedPlot = JSON.parse(`{{ plots|default({})|tojson|safe }}`);
 		if (usedPlot && usedPlot.used && usedPlot.used.plot) {
 			selectedPlot.querySelector("#sel_coreIdea").value = usedPlot.used.plot.core_idea;
@@ -1032,6 +1080,7 @@
 	}
 	load_values_in_forms();
 
+	// Converts the stored session timestamp into a relative "time ago" label.
 	function convertToAgoFormat(rawText) {
 		const timestamp = rawText.replace("Created:", "").trim();
 
@@ -1058,8 +1107,10 @@
 		noOfPlots: "1"
 	};
 
+	// Sends the requested generation task to the LLM, streams the response, and routes the result to the right post-processor.
 	sendDataToLLM = async function (generate, el) {
 
+		// Reads a field value from the form or from test fixtures when enabled.
 		const getVal = (id) =>
 			useTestData ? test_data[id] : document.getElementById(id).value;
 
@@ -1111,9 +1162,9 @@
 		// 🔹 Modal setup
 		let modalHTML = `
 			<label class="form-label">Generating...</label>
-			<p>Please wait while the AI generates the content.</p>
+			<p class="text-secondary font-14">Please wait while the AI generates the content.</p>
 			<button class="btn btn-danger" id="stopBtn">Stop</button>
-			<div class="form-control" id="aiOutput"></div>
+			<div class="form-control font-12" id="aiOutput"></div>
 		`;
 
 		let displayModal = createModal(modalHTML, { backdrop: "static", keyboard: false });
@@ -1123,12 +1174,14 @@
 		let stopButton = displayModal.get("#stopBtn");
 		stopButton.style.display = "none";
 
+		// Clears temporary AI output buffers before a new generation run.
 		const resetUI = () => {
 			plotsTextfromAI = "";
 			storyFromPlot = "";
 			aiOutput.innerHTML = "";
 		};
 
+		// Stops the active streaming request and notifies the backend to cancel generation.
 		const stopGeneration = async () => {
 			if (controller) controller.abort();
 			if (!currentRequestId) return;
@@ -1146,6 +1199,7 @@
 		};
 
 		// 🔹 Request builder (THIS removes 80% duplication)
+		// Builds the request payload shape for the selected generation mode.
 		const buildRequestBody = () => {
 			if (generate === "plots") return { generate, ...params };
 
@@ -1181,7 +1235,6 @@
 
 			if (generate === "character") {
 				let s = document.querySelector("#selectedPlot");
-				console.log("character");
 				return {
 					generate,
 					currentStory,
@@ -1193,6 +1246,7 @@
 			}
 		};
 
+		// Appends streamed response chunks to the correct AI output buffer.
 		const handleChunk = (chunk) => {
 			if (generate === "plots") {
 				plotsTextfromAI += chunk;
@@ -1265,13 +1319,14 @@
 			} catch (error) {
 				if (error.name !== "AbortError") {
 					console.error("AI failed:", error);
-					showMessage({ type: "error",title: "Error", message: "AI failed: " + error.message });
+					showMessage({ type: "error", title: "Error", message: "AI failed: " + error.message });
 				}
 				retry++;
 			}
 		}
 	};
 
+	// Parses AI-generated character JSON and saves each character to the session.
 	async function populateCharacter() {
 		const jsonMatch = charactersTextfromAI.match(/\[[\s\S]*\]/);
 
@@ -1288,22 +1343,20 @@
 			.replace(/\t/g, " ");
 
 		try {
-			console.log(safeJSON);
 			const cleanedCharactersTextfromAI = JSON.parse(safeJSON);
 			for (var i = 0; i < cleanedCharactersTextfromAI.length; i++) {
 				let character = cleanedCharactersTextfromAI[i];
 				//charactersDiv.value += " " + character.replace(/\\n/g, "<br>");
-				//console.log("Character received:", character);
 				await send_char_to_backend(character);
 			}
 
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
-			console.log("Problematic JSON:", safeJSON);
 		}
 	}
 
 
+	// Parses the streamed continuation response and appends it to the story editor.
 	async function getContinuation() {
 		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
 		if (!jsonMatch) {
@@ -1318,16 +1371,15 @@
 		try {
 			const cleanedStoryFromPlot = JSON.parse(safeJSON);
 			let continuation = cleanedStoryFromPlot.continuation;
-			console.log("Continuation received:", continuation);
 			// 🔥 Render properly
 			storyDiv.value += "\n\n" + continuation.replace(/\\n/g, "<br>");
 			await saveStoryDraft();
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
-			console.log("Problematic JSON:", safeJSON);
 		}
 	}
 
+	// Parses the generated story response and replaces the editor content with the new draft.
 	async function populateStory() {
 		const jsonMatch = storyFromPlot.match(/\{[\s\S]*\}/);
 		if (!jsonMatch) {
@@ -1349,9 +1401,9 @@
 			await saveStoryDraft();
 		} catch (e) {
 			console.error("JSON parsing failed:", e);
-			console.log("Problematic JSON:", safeJSON);
 		}
 	}
+	// Parses generated plots, stores them in the session, and reloads the plot library.
 	async function populatePlots() {
 		plots_frontend = plotsTextfromAI.trim();
 		plots_frontend = useCachedPlots ? JSON.parse(localStorage.getItem("plots")) : plots_frontend;
@@ -1376,14 +1428,11 @@
 			return;
 		}
 
-		console.log("plots length:", plots_frontend.length);
-
-
 		for (let i = 0; i < plots_frontend.length; i++) {
 			const plot = plots_frontend[i];
 
 			try {
-				const response = await fetch('/update_session', {
+				await fetch('/update_session', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
@@ -1393,8 +1442,6 @@
 						available_plot: JSON.stringify(plot)
 					})
 				});
-				//console.log("Response on plot update : ", response);
-				//const data = await response.json();
 			} catch (error) {
 				console.error("Failed to update session:", error);
 			}
@@ -1402,6 +1449,7 @@
 		loadPlots();
 	};
 
+	// Builds the accordion card for a single plot option.
 	function createPlotDiv(i, plot, makeEditable = true) {
 		makeEditable = makeEditable ? "" : "readonly";
 		const plotDiv = document.createElement("div");
@@ -1470,6 +1518,7 @@
 		return plotDiv;
 	}
 
+	// Promotes a plot from the library into the selected-plot workspace and saves that choice.
 	function usePlot(i) {
 		showDialog({
 			title: "Use Plot",
@@ -1493,8 +1542,6 @@
 				const stakes = card.querySelector(".stakes").value;
 				const direction = card.querySelector(".direction").value;
 				const rough_story_timeline = card.querySelector(".roughStoryTimeline").value;
-				console.log("Selected Plot:");
-				console.log(core_idea, protagonist, conflict, stakes, direction, rough_story_timeline);
 
 				const selectedPlot = document.querySelector("#selectedPlot");
 				selectedPlot.querySelector("#sel_coreIdea").value = core_idea;
@@ -1525,6 +1572,7 @@
 		});
 	}
 
+	// Removes a plot from the session after the user confirms deletion.
 	async function rejectPlot(i) {
 		showDialog({
 			title: "Delete Plot",
@@ -1559,6 +1607,7 @@
 		});
 	}
 
+	// Deletes a saved story draft from the session and refreshes the draft list.
 	async function rejectStoryDraft(i) {
 		const storyDraftID = i.dataset.draftid;
 		showDialog({
@@ -1658,10 +1707,10 @@
 		textarea.value = "";
 	});
 
-	const helpText = document.getElementsByClassName("help")[0];	
+	const helpText = document.getElementsByClassName("help")[0];
 	let helptextheight = helpText.scrollHeight + "px";
-	helpText.style.overflow = "hidden";	
-	helpText.style.height = "0px";	
+	helpText.style.overflow = "hidden";
+	helpText.style.height = "0px";
 	helpText.style.transition = "height 0.5s ease-in-out";
 	document.getElementsByClassName("help-btn")[0].addEventListener("click", () => {
 		if (helpText.style.height === "0px" || !helpText.style.height) {
@@ -1670,7 +1719,7 @@
 			helpText.style.height = "0px";
 		}
 	});
-	
+
 
 
 </script>

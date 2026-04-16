@@ -32,10 +32,12 @@
 	{% block content %}{% endblock %}
 	<div class="dock-container">
 		<nav class="glass-dock">
-			<div title="Drag to reposition">
-				<button title="Drag to reposition" id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
+			<div class="d-flex gap-2">
+				<div title="Drag to reposition">
+					<button title="Drag to reposition" id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
+				</div>
+				<a href="/" class="navbar-brand bold"><span class="dock-home-icon">🖊</span> <span id="site-brand" class="dock-label">Writer's Copilot</span></a>
 			</div>
-			<a href="/" class="navbar-brand bold"><span class="dock-home-icon">🖊</span> <span id="site-brand" class="dock-label">Writer's Copilot</span></a>
 
 			{% block navbar %}{% endblock %}
 

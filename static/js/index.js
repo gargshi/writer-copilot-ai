@@ -393,6 +393,7 @@ function showDialog({
 	confirmText = "OK",
 	cancelText = "Cancel",
 	showCancel = true,
+	showConfirm = true,
 	onConfirm = async () => { },
 	onCancel = async () => { }
 }) {
@@ -403,18 +404,20 @@ function showDialog({
 					${markupHTML}
 					<div class="d-flex justify-content-end gap-2">
 						${showCancel ? `<button class="btn btn-secondary dialogCancel">${cancelText}</button>` : ""}
-						<button class="btn btn-primary dialogConfirm">${confirmText}</button>
+						${showConfirm ? `<button class="btn btn-primary dialogConfirm">${confirmText}</button>` : ""}						
 					</div>
 				`);
 
 		const modalEl = modalObj.el;
 		const modal = modalObj.instance;
 
-		modalEl.querySelector(".dialogConfirm").onclick = async () => {
-			await onConfirm();   // 🔥 run user-defined async function
-			modal.hide();
-			resolve(true);
-		};
+		if (showConfirm){
+			modalEl.querySelector(".dialogConfirm").onclick = async () => {
+				await onConfirm();   // 🔥 run user-defined async function
+				modal.hide();
+				resolve(true);
+			};
+		}
 
 		if (showCancel) {
 			modalEl.querySelector(".dialogCancel").onclick = async () => {
