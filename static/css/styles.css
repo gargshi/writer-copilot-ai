@@ -15,6 +15,7 @@
 	--btn-primary-hover: #211e57;
 	--bg-text-area: #fffac5;
 	--bg-btn-dark: #1f1f20;
+	--bg-warning: #ffed4a;
 }
 
 [data-theme="dark-blue"] {
@@ -31,6 +32,7 @@
 	--btn-primary-hover: #262270;
 	--bg-text-area: #292001;
 	--bg-btn-dark: #000000;
+	--bg-warning: #ffed4a;
 }
 
 [data-theme="dark1"] {
@@ -65,6 +67,7 @@
 
 	--bg-btn-dark: #000000;
 	/* true dark button */
+	--bg-warning: #ffed4a;
 }
 
 [data-theme="dark"] {
@@ -87,6 +90,7 @@
   --btn-primary-hover: #d97706;
 
   --bg-btn-dark: #11151d;
+  --bg-warning: #ffed4a;
 }
 
 
@@ -1010,7 +1014,7 @@ input.form-control::placeholder {
 
 .lmstudio-status.status-loading .lmstudio-status-dot,
 .lmstudio-status.status-checking .lmstudio-status-dot {
-	background: #f59e0b;
+	/* background: #f59e0b; */
 	box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
 }
 
@@ -1488,4 +1492,69 @@ input.form-control::placeholder {
 .custom-switch .form-check-input:checked {
   background-color: #23a73f; /* track color (on) */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3' fill='white'/%3E%3C/svg%3E");
+}
+
+
+.z-9999{
+	z-index: 9999;
+}
+
+#toastContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    perspective: 1000px;
+}
+
+#toastContainer .toast {
+    /* transition: all 1s ease; */
+    transform-origin: top right;
+	position: relative;
+    overflow: hidden;
+}
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    animation-name: shrinkBar;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes shrinkBar {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+.toast {
+    animation: slideIn 1s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%) scale(1);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+
+
+.indicator{
+	background-color: gray;
+    height: 15px;
+    width: 15px;  
+	border-radius: 50%;  
+	display: block;
+	flex-shrink: 0;
+	line-height: 0;
 }

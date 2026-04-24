@@ -6,10 +6,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{% block title %}Writer Copilot AI{% endblock %}</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-	integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+		integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 	<link
-	href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
-	rel="stylesheet">
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+		rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 	{% block head %}{% endblock %}
@@ -17,17 +17,7 @@
 
 <body>
 
-	{% with messages = get_flashed_messages(with_categories=true) %}
-	{% if messages %}
-	{% for category, message in messages %}
-	<div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
-		role="alert">
-		{{ message }}
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-	</div>
-	{% endfor %}
-	{% endif %}
-	{% endwith %}
+
 
 	{% block content %}{% endblock %}
 	<div class="dock-container">
@@ -36,7 +26,8 @@
 				<div title="Drag to reposition">
 					<button title="Drag to reposition" id="dragDockBtn"><i class="bi bi-grip-vertical"></i></button>
 				</div>
-				<a href="/" class="navbar-brand bold"><span class="dock-home-icon">🖊</span> <span id="site-brand" class="dock-label">Writer's Copilot</span></a>
+				<a href="/" class="navbar-brand bold"><span class="dock-home-icon">🖊</span> <span id="site-brand"
+						class="dock-label">Writer's Copilot</span></a>
 			</div>
 
 			{% block navbar %}{% endblock %}
@@ -55,24 +46,34 @@
 
 			<div class="lmstudio-status" id="lmstudioStatus" title="Checking LM Studio status">
 				<span class="lmstudio-status-dot"></span>
-				<span class="lmstudio-status-text">LM Studio: Checking</span>
+				<span class="lmstudio-status-text">AI</span>
 			</div>
 
 			<button class="dock-mode-toggle" id="dockModeToggle" type="button" title="Toggle compact dock">
 				<i class="bi bi-layout-sidebar-inset"></i>
 			</button>
-
-
-
-			
 		</nav>
 	</div>
+	<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 z-9999"></div>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-	integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-	crossorigin="anonymous"></script>
+		integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+		crossorigin="anonymous"></script>
 	<script src="{{ url_for('static', filename='js/index.js') }}"></script>
-	
+	<div id="flashed-data" data-messages='{{ get_flashed_messages(with_categories=true) | tojson }}'></div>
 	{% block scripts %}{% endblock %}
+	<script>
+		const flashedMessages = JSON.parse(
+			document.getElementById("flashed-data").dataset.messages
+		);
+		flashedMessages.forEach(([category, message]) => {
+			showToast({
+				title: `${category.charAt(0).toUpperCase() + category.slice(1)}`,
+				message: message,
+				type: category,
+				delay: 5000
+			});
+		});
+	</script>
 </body>
 
 </html>

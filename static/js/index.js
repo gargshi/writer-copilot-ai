@@ -72,49 +72,41 @@ async function refreshLMStudioStatus() {
 	lmstudioStatusEl.classList.add("status-checking");
 
 	const label = lmstudioStatusEl.querySelector(".lmstudio-status-text");
-	label.textContent = "LM Studio: Checking";
+	//label.textContent = "LM Studio: ";
 	lmstudioStatusEl.title = "Checking LM Studio status";
 
 	try {
-		const response = await fetch("/lmstudio/load_model");
+		const response = await fetch("/lmstudio/status");
 		if (!response.ok) {
 			throw new Error(`Status request failed with ${response.status}`);
 		}
-
-		const data = await response.json();
+		let data = await response.json();
 		const state = data.model_state || {};
 		const model = state.model || "unknown";
 
 		lmstudioStatusEl.classList.remove("status-checking", "status-loaded", "status-error", "status-loading");
 
-		if (state.loaded) {
+
+		if (data.ready) {
 			lmstudioStatusEl.classList.add("status-loaded");
-			label.textContent = `LM Studio: Loaded`;
-			lmstudioStatusEl.title = `Loaded model: ${model}`;
-			return;
+			//label.textContent = "LM Studio";
+			lmstudioStatusEl.title = "Model is responsive";
+		} else {
+			lmstudioStatusEl.classList.add("status-error");
+			//label.textContent = "LM Studio: Offline";
+			lmstudioStatusEl.title = "Model not responding";
 		}
-
-		if (state.status === "loading") {
-			lmstudioStatusEl.classList.add("status-loading");
-			label.textContent = "LM Studio: Loading";
-			lmstudioStatusEl.title = `Loading model: ${model}`;
-			return;
-		}
-
-		lmstudioStatusEl.classList.add("status-error");
-		label.textContent = "LM Studio: Offline";
-		lmstudioStatusEl.title = state.error
-			? `LM Studio error: ${state.error}`
-			: `Model not loaded: ${model}`;
 	} catch (error) {
 		lmstudioStatusEl.classList.remove("status-checking", "status-loaded", "status-loading");
 		lmstudioStatusEl.classList.add("status-error");
-		label.textContent = "LM Studio: Offline";
+		//label.textContent = "LM Studio: Offline";
 		lmstudioStatusEl.title = `LM Studio status unavailable: ${error.message}`;
 	}
 }
 
+const LMSTUDIO_STATUS_POLL_INTERVAL_MS = 10000;
 refreshLMStudioStatus();
+//setInterval(refreshLMStudioStatus, LMSTUDIO_STATUS_POLL_INTERVAL_MS);
 
 
 function applyDockMode(mode) {
@@ -411,7 +403,7 @@ function showDialog({
 		const modalEl = modalObj.el;
 		const modal = modalObj.instance;
 
-		if (showConfirm){
+		if (showConfirm) {
 			modalEl.querySelector(".dialogConfirm").onclick = async () => {
 				await onConfirm();   // 🔥 run user-defined async function
 				modal.hide();
@@ -483,3 +475,145 @@ async function showMessage({
 		}, dismissTimerMS);
 	}
 }
+
+let toastQueue = [];
+let isToastActive = false;
+
+function showToast(config) {
+	toastQueue.push(config);
+	processToastQueue();
+}
+
+function processToastQueue() {
+	if (isToastActive || toastQueue.length === 0) return;
+
+	isToastActive = true;
+
+	const {
+		type = "info",
+		title = "",
+		message = "",
+		delay = 3000
+	} = toastQueue.shift();
+
+	const container = document.getElementById("toastContainer");
+
+	const bgMap = {
+		success: "bg-success text-white",
+		error: "bg-danger text-white",
+		warning: "bg-warning text-dark",
+		info: "bg-primary text-white"
+	};
+
+	const toastEl = document.createElement("div");
+	toastEl.className = `toast align-items-center ${bgMap[type]} border-0`;
+
+	const wrapper = document.createElement("div");
+	wrapper.className = "d-flex";
+
+	const body = document.createElement("div");
+	body.className = "toast-body";
+
+	if (title) {
+		const strong = document.createElement("strong");
+		strong.innerHTML = title;
+		body.appendChild(strong);
+		body.appendChild(document.createElement("br"));
+	}
+
+	body.appendChild(document.createTextNode(message));
+
+	const closeBtn = document.createElement("button");
+	closeBtn.type = "button";
+	closeBtn.className = "btn font-14 me-2 m-auto";
+	closeBtn.setAttribute("data-bs-dismiss", "toast");
+	closeBtn.innerHTML = "<i class='bi bi-x-lg'></i>";
+
+	wrapper.appendChild(body);
+	wrapper.appendChild(closeBtn);
+	toastEl.appendChild(wrapper);
+	const progress = document.createElement("div");
+	progress.className = "toast-progress";
+	progress.style.animationDuration = `${delay}ms`;
+	toastEl.appendChild(progress);
+
+	container.prepend(toastEl);
+
+	const toast = new bootstrap.Toast(toastEl, { delay });
+	toast.show();
+
+	toastEl.addEventListener("hidden.bs.toast", () => {
+		toastEl.remove();
+		isToastActive = false;
+		processToastQueue(); // 🔁 next toast
+	});
+	toastEl.addEventListener("mouseenter", () => {
+		progress.style.animationPlayState = "paused";
+	});
+
+	toastEl.addEventListener("mouseleave", () => {
+		progress.style.animationPlayState = "running";
+	});
+}
+
+// function showToast({
+// 	type = "info", // success | error | warning | info
+// 	title = "",
+// 	message = "",
+// 	delay = 3000
+// }) {
+// 	const container = document.getElementById("toastContainer");
+
+// 	const bgMap = {
+// 		success: "bg-success text-white",
+// 		error: "bg-danger text-white",
+// 		warning: "bg-warning text-dark",
+// 		info: "bg-primary text-white"
+// 	};
+
+// 	const toastEl = document.createElement("div");
+// 	toastEl.className = `toast align-items-center ${bgMap[type]} border-0`;
+// 	toastEl.setAttribute("role", "alert");
+// 	toastEl.setAttribute("aria-live", "assertive");
+// 	toastEl.setAttribute("aria-atomic", "true");
+
+// 	const wrapper = document.createElement("div");
+// 	wrapper.className = "d-flex";
+
+// 	const body = document.createElement("div");
+// 	body.className = "toast-body";
+
+// 	// Title (safe)
+// 	if (title) {
+// 		const strong = document.createElement("strong");
+// 		strong.textContent = title; // ✅ SAFE
+// 		body.appendChild(strong);
+// 		body.appendChild(document.createElement("br"));
+// 	}
+
+// 	// Message (safe)
+// 	const messageNode = document.createTextNode(message);
+// 	body.appendChild(messageNode);
+
+// 	const closeBtn = document.createElement("button");
+// 	closeBtn.type = "button";
+// 	closeBtn.className = "btn font-14 me-2 m-auto";
+// 	closeBtn.setAttribute("data-bs-dismiss", "toast");
+// 	closeBtn.innerHTML = "<i class='bi bi-x-lg'></i>";
+
+// 	wrapper.appendChild(body);
+// 	wrapper.appendChild(closeBtn);
+
+// 	toastEl.appendChild(wrapper);
+
+// 	container.prepend(toastEl);
+// 	// container.appendChild(toastEl);
+
+// 	const toast = new bootstrap.Toast(toastEl, { delay });
+// 	toast.show();
+
+// 	// Cleanup after hide
+// 	toastEl.addEventListener("hidden.bs.toast", () => {
+// 		toastEl.remove();
+// 	});
+// }

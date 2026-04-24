@@ -16,6 +16,8 @@ from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 load_dotenv()
 
+MODEL_READY = False
+LOCK_FILE = "model_loading.lock"
 
 # openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -27,7 +29,7 @@ client = OpenAI(
 lmstudio_load_state = {
 	"attempted": False,
 	"loaded": False,
-	"model": os.getenv("LMSTUDIO_MODEL"),
+	"model": os.getenv("LMSTUDIO_MODEL_FAST"),
 	"status": "not_started",
 	"response": None,
 	"error": None,
@@ -71,84 +73,85 @@ active_generations = {}
 
 app.secret_key = os.getenv("APP_SECRET_KEY")
 
+# def is_model_responsive():
+#     try:
+#         client.chat.completions.create(
+#             model=os.getenv("LMSTUDIO_MODEL_FAST"),
+#             messages=[{"role": "user", "content": "ping"}],
+#             max_tokens=1,
+#             temperature=0
+#         )
+#         return True
+#     except Exception:
+#         return False
 
-def get_lmstudio_rest_base_url():
-	base_url = (os.getenv("LMSTUDIO_BASE_URL") or "").strip()
-	if not base_url:
-		raise ValueError("LMSTUDIO_BASE_URL is not configured")
+def is_model_responsive():
+    try:
+        client.chat.completions.create(
+            model=os.getenv("LMSTUDIO_MODEL_FAST"),
+            messages=[{"role": "user", "content": "."}],
+            max_tokens=1,
+            temperature=0,
+            stream=False,   # 🔥 ensure no streaming overhead
+            timeout=1.5     # 🔥 fail fast
+        )
+        return True
+    except Exception:
+        return False
 
-	base_url = base_url.rstrip("/")
-	if base_url.endswith("/v1"):
-		base_url = base_url[:-3]
+def load_model():
+    base_url = (os.getenv("LMSTUDIO_BASE_URL") or "").rstrip("/")
+    if base_url.endswith("/v1"):
+        base_url = base_url[:-3]
 
-	return base_url
+    headers = {
+        "Authorization": f"Bearer {os.getenv('LMSTUDIO_API_KEY', 'lm-studio')}"
+    }
 
+    with httpx.Client(timeout=60.0) as http_client:
+        res = http_client.post(
+            f"{base_url}/api/v1/models/load",
+            headers=headers,
+            json={"model": os.getenv("LMSTUDIO_MODEL_FAST")}
+        )
+        res.raise_for_status()
+        return res.json()
 
-def load_lmstudio_model():
-	model_name = (os.getenv("LMSTUDIO_MODEL") or "").strip()
-	if not model_name:
-		raise ValueError("LMSTUDIO_MODEL is not configured")
+def ensure_model_ready():
+    global MODEL_READY
 
-	lmstudio_load_state.update({
-		"attempted": True,
-		"loaded": False,
-		"model": model_name,
-		"status": "loading",
-		"response": None,
-		"error": None,
-	})
+    # 🔥 Fast path (same process)
+    if MODEL_READY:
+        return
 
-	base_url = get_lmstudio_rest_base_url()
-	api_key = os.getenv("LMSTUDIO_API_KEY", "lm-studio")
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": f"Bearer {api_key}"
-	}
+    # 🔥 Real check (works across restarts)
+    if is_model_responsive():
+        print("✅ Model already running")
+        MODEL_READY = True
+        return
 
-	with httpx.Client(timeout=60.0) as http_client:
-		response = http_client.post(
-			f"{base_url}/api/v1/models/load",
-			headers=headers,
-			json={
-				"model": model_name,
-				"echo_load_config": True
-			}
-		)
-		response.raise_for_status()
-		payload = response.json()
+    # 🔒 Wait if another process is loading
+    while os.path.exists(LOCK_FILE):
+        print("⏳ Waiting for model to load...")
+        time.sleep(1)
 
-	lmstudio_load_state.update({
-		"loaded": payload.get("status") == "loaded",
-		"status": payload.get("status", "unknown"),
-		"response": payload,
-		"error": None,
-	})
+    try:
+        # Create lock
+        open(LOCK_FILE, "w").close()
 
-	return payload
+        # Double check (important!)
+        if is_model_responsive():
+            print("✅ Model became ready")
+            MODEL_READY = True
+            return
 
+        print("⚡ Loading model...")
+        load_model()
+        MODEL_READY = True
 
-def autoload_lmstudio_model():
-	try:
-		payload = load_lmstudio_model()
-		print(f"LM Studio model loaded: {payload.get('instance_id', os.getenv('LMSTUDIO_MODEL'))}")
-	except Exception as e:
-		lmstudio_load_state.update({
-			"attempted": True,
-			"loaded": False,
-			"status": "error",
-			"error": str(e),
-		})
-		print(f"LM Studio autoload failed: {e}")
-
-
-def should_autoload_lmstudio_model():
-	# Flask's debug reloader imports this module twice. Only autoload in the
-	# serving process so the model is not loaded twice during development.
-	return __name__ != '__main__'
-
-
-if should_autoload_lmstudio_model():
-	autoload_lmstudio_model()
+    finally:
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
 
 
 @app.route('/')
@@ -161,35 +164,13 @@ def story():
 	return render_template('index.html')
 
 
-@app.route('/lmstudio/load_model', methods=['POST'])
-def lmstudio_load_model_endpoint():
-	try:
-		payload = load_lmstudio_model()
-		return jsonify({
-			"status": "success",
-			"message": "LM Studio model loaded successfully",
-			"model_state": lmstudio_load_state,
-			"payload": payload
-		})
-	except Exception as e:
-		lmstudio_load_state.update({
-			"attempted": True,
-			"loaded": False,
-			"status": "error",
-			"error": str(e),
-		})
-		return jsonify({
-			"status": "error",
-			"message": "Failed to load LM Studio model",
-			"model_state": lmstudio_load_state
-		}), 500
-
-
-@app.route('/lmstudio/load_model', methods=['GET'])
+@app.route('/lmstudio/status', methods=['GET'])
 def lmstudio_load_model_status():
+	MODEL_READY=is_model_responsive()
+
 	return jsonify({
 		"status": "success",
-		"model_state": lmstudio_load_state
+		"ready": MODEL_READY
 	})
 
 
@@ -222,8 +203,7 @@ def update_session():
 		session_dict['session_description'] = data['description'] if 'description' in fields else session_dict['session_description']
 		if 'story_params' not in session_dict.keys():
 			session_dict['story_params'] = {}
-		session_dict['story_params'] = json.loads(
-			data['story_params']) if 'story_params' in fields else session_dict['story_params']
+		session_dict['story_params'] = json.loads(data['story_params']) if 'story_params' in fields else session_dict['story_params']
 		# if 'generated_plot' not in session_dict['plots'].keys():
 		# 	session_dict['plots']['generated']=[]
 		# session_dict['plots']['generated'].append(json.loads(data['generated_plot']))
@@ -367,6 +347,7 @@ def create_session():
 			"storyType": "",
 			"storyPerson": "",
 			"noOfPlots": "",
+			"storyGenre":""
 		},
 		"generated_drafts": []
 	}
@@ -525,7 +506,7 @@ def drafts_handler():
 		elif request.method == 'GET':
 			if request.args.get('id'):
 				''' To get all drafts for a session '''
-				print("recieved id=",request.args.get('id'))
+				# print("recieved id=",request.args.get('id'))
 				sess_id = request.args.get('id')
 				sess_dir = os.getenv("STORY_SESSIONS_FOLDER_NAME")
 				with open(os.path.join(sess_dir, f'session_{sess_id}.json'), 'r') as f:
@@ -712,15 +693,7 @@ def view_session(id):
 				"plot": plots_from_session['available'][plot['plot_id']]
 			})
 
-	print(plots)
-	print("SESSION DATA")
-	print(session.keys())
-	print(len(session))
-	print("SESSION DATA-END")
-
 	return render_template('view_session_updated.html', session=session, plots=plots)
-
-	return render_template('view_session.html', session=session, plots=plots)
 
 
 
@@ -734,7 +707,7 @@ def delete_session():
 		os.remove(filepath)
 	except Exception as e:
 		print(e)
-		return jsonify({"status": "error", "message": str(e)})
+		return jsonify({"status": "error", "message": str(e)})	
 	return jsonify({"status": "success"})
 
 @app.route('/get_plots', methods=['GET'])
@@ -802,6 +775,7 @@ def give_data_to_llm():
 			Opening scene: {data["openingScene"]}
 			Story Type: {data["storyType"]}
 			Narration Style: {data["storyPerson"]}
+			Story Genre(s): {','.join(data['storyGenre'])}
 
 			Output:
 			Return ONLY a valid JSON array with EXACTLY {data["noOfPlots"]} objects.
@@ -863,9 +837,11 @@ def give_data_to_llm():
 			Conflict: {data["conflict"]}
 			Stakes: {data["stakes"]}
 			Direction: {data["direction"]}
+			Opening Scene: {data["openingScene"]}
 			Available Characters: {data["characters"]}
 			Words to Generate: {data["wordsToGenerate"]}
 			Story Type: {data["storyType"]}
+			Story Genre(s): {','.join(data['storyGenre'])}
 			Narration Style: {data["storyPerson"]}
 			Rough story timeline: {data["roughStoryTimeline"]}
 
@@ -927,6 +903,7 @@ def give_data_to_llm():
 			If any answer is NO, revise before output.
 		"""
 	elif data['generate'] == "continue":
+		story_context = data["currentStory"][-1500:]  # last ~1500 chars
 		prompt = f"""
 			You are an expert story writer continuing an existing narrative.
 
@@ -951,7 +928,7 @@ def give_data_to_llm():
 
 			Inputs:
 			Story so far:
-			{data["currentStory"]}
+			{story_context}
 
 			Available Characters:
 			{data["characters"]}
@@ -960,6 +937,7 @@ def give_data_to_llm():
 			Story Type: {data["storyType"]}
 			Narration Style: {data["storyPerson"]}
 			Rough story timeline: {data["roughStoryTimeline"]}
+			Story Genre(s): {','.join(data['storyGenre'])}
 
 			Output:
 			Return ONLY a valid JSON object as per the schema below.
@@ -1005,11 +983,22 @@ def give_data_to_llm():
 			- Do NOT restate previously established information unless adding new insight
 			- Each paragraph MUST introduce new progression, not rephrasing
 
-			Self-Check (MANDATORY before final output):
-			- Are ONLY provided characters used?
-			- Does the continuation begin exactly where the last line ends?
-			- Is the cause-effect chain intact?
-			- Are character behaviors consistent?
+			Genre Enforcement (MANDATORY):
+			- The tone, events, and character reactions MUST strongly reflect: {','.join(data['storyGenre'])}
+			- If genre includes Comedy → include irony, absurdity, or humor in narration or events
+			- If genre includes Sci-Fi → ground events in speculative or technological logic
+			- DO NOT drift into unrelated genres (e.g., horror unless explicitly included)
+
+			Anti-Repetition Rules (CRITICAL):
+			- NEVER reuse sentence structures from earlier paragraphs
+			- NEVER restate descriptions already used
+			- Each paragraph MUST introduce a NEW physical action or change
+			- Avoid repeating character thoughts unless the situation has changed
+
+			Self-check:
+			- correct location
+			- correct characters
+			- logical flow
 
 			If any answer is NO, revise before output.
 
@@ -1084,6 +1073,12 @@ def give_data_to_llm():
 			- Supporting characters MUST connect to either protagonist or conflict
 			- Each character must influence the story direction
 
+			Genre Enforcement (MANDATORY):
+			- The tone, events, and character reactions MUST strongly reflect: {','.join(data['storyGenre'])}
+			- If genre includes Comedy → include irony, absurdity, or humor in narration or events
+			- If genre includes Sci-Fi → ground events in speculative or technological logic
+			- DO NOT drift into unrelated genres (e.g., horror unless explicitly included)
+
 			Quality Rules:
 			- Avoid vague traits like "mysterious" without context
 			- Prefer specific behavioral and visual details
@@ -1107,78 +1102,51 @@ def llm_prompt(prompt, show_think=False):
 	"""
 	This function is designed to set the LLM to show the thinking if available using the show_think variable. based on the condition,
 	the LLM will show the thinking/reasoning or not.
-	"""
+	"""	
 
-	request_id = str(uuid.uuid4())
-	active_generations[request_id] = False
+	try:
 
-	def generate(show_think=False):
+		request_id = str(uuid.uuid4())
+		active_generations[request_id] = False
 
-		stream = client.chat.completions.create(
-			model=os.getenv("LMSTUDIO_MODEL"),
-			messages=[{"role": "user", "content": prompt}],
-			stream=True
-		)
+		def generate(show_think=False, prompt=prompt):
+			ensure_model_ready()
+			stream = client.chat.completions.create(
+				model=os.getenv("LMSTUDIO_MODEL_FAST"),
+				messages=[
+					{"role": "system", "content": "You output ONLY valid JSON."},
+					{"role": "user", "content": prompt}
+				],
+				stream=True,
+				temperature=0.6,        # 🔥 more accurate
+				top_p=0.9,
+				max_tokens=1200,        # 🔥 avoid truncation
+				frequency_penalty=0.7,  # reduce repetition
+				presence_penalty=0.6
+			)
 
-		try:
-			if show_think:
-
+			try:
 				for chunk in stream:
-
 					# STOP CHECK
 					if active_generations.get(request_id):
 						print("⛔ Backend stopped generation")
 						stream.close()
 						break
 
-					if chunk.choices[0].delta.content:
-						yield chunk.choices[0].delta.content
-			else:
-				buffer = ""
+					token = chunk.choices[0].delta.content
 
-				inside_think = False
+					if token:
+						yield token
+						print(token, end="", flush=True)					
+			finally:
+				# cleanup
+				active_generations.pop(request_id, None)
 
-				for chunk in stream:
+		response = Response(generate(show_think=show_think,prompt=prompt), content_type="text/plain")
+		response.headers["X-Request-ID"] = request_id
 
-					if active_generations.get(request_id):
-						print("⛔ Backend stopped generation")
-						stream.close()
-						break
-
-					if not chunk.choices[0].delta.content:
-						continue
-
-					text = chunk.choices[0].delta.content
-
-					buffer += text
-
-					# Detect THINK blocks
-					while True:
-						if not inside_think:
-							start = buffer.find("[THINK]")
-							if start == -1:
-								yield buffer
-								buffer = ""
-								break
-							else:
-								# yield text before THINK
-								yield buffer[:start]
-								buffer = buffer[start + len("[THINK]"):]
-								inside_think = True
-						else:
-							end = buffer.find("[/THINK]")
-							if end == -1:
-								# wait for more data
-								break
-							else:
-								buffer = buffer[end + len("[/THINK]"):]
-								inside_think = False
-		finally:
-			# cleanup
-			active_generations.pop(request_id, None)
-
-	response = Response(generate(show_think=show_think), content_type="text/plain")
-	response.headers["X-Request-ID"] = request_id
+	except Exception as e:
+		print(e)
 
 	return response
 
@@ -1197,7 +1165,5 @@ def stop_generation():
 
 
 if __name__ == '__main__':
-	debug_mode = True
-	if not debug_mode or os.getenv("WERKZEUG_RUN_MAIN") == "true":
-		autoload_lmstudio_model()
+	debug_mode = True		
 	app.run(debug=debug_mode)

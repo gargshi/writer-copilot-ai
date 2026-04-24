@@ -262,26 +262,50 @@
   function initDeleteListeners() {
     document.querySelectorAll('.delete-session').forEach(button => {
       button.onclick = async function () {
-        if (!confirm('Delete this session?')) return;
+        showDialog({
+          message: 'Are you sure you want to delete this session?',
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          showCancel: true,
+          onConfirm: async () => {
+            try {
+              const res = await fetch('/delete_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: this.dataset.id,
+                  timestamp: this.dataset.timestamp
+                })
+              });
 
-        try {
-          const res = await fetch('/delete_session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: this.dataset.id,
-              timestamp: this.dataset.timestamp
-            })
-          });
-
-          if (res.ok) {
-            getSessions();
-          } else {
-            alert('Failed to delete');
+              if (res.ok) {
+                getSessions();
+                showToast({
+                  type: 'success',
+                  title: 'Success',
+                  message: 'Session deleted successfully',
+                  timer: 5000
+                });
+              } else {
+                alert('Failed to delete');
+                showToast({
+                  type: 'error',
+                  title: 'Error',
+                  message: 'Failed to delete session',
+                  timer: 5000
+                });
+              }
+            } catch {
+              alert('Error deleting session');
+              showToast({
+                type: 'error',
+                title: 'Error',
+                message: 'Failed to delete session',
+                timer: 5000
+              });
+            }
           }
-        } catch {
-          alert('Error deleting session');
-        }
+        });              
       };
     });
   }
