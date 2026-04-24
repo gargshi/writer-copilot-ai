@@ -123,10 +123,11 @@ pip install -r requirements.txt
 5. Create a `.env` file in the project root
 
 ```env
-# LM Studio Configuration
+# Sample LM Studio Configuration
 LMSTUDIO_BASE_URL=http://localhost:1234/v1
 LMSTUDIO_API_KEY=lm-studio
-LMSTUDIO_MODEL=qwen/qwen3-4b
+LMSTUDIO_MODEL_FAST=qwen/qwen3-4b
+LMSTUDIO_MODEL_DEEP=meta-llama-3.1-8b-instruct
 
 # Storage Folders
 DRAFT_FOLDER_NAME=drafts
